@@ -9,20 +9,20 @@
     {
       "id": "avatar-1",
       "description": "User avatar 1",
-      "imageUrl": "https://images.unsplash.com/photo-1521119989659-a83eee488004?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjU1NzE4NDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "person portrait"
+      "imageUrl": "https://images.unsplash.com/photo-1620932934088-fbdb2920e784?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtdXNsaW0lMjBtYW58ZW58MHx8fHwxNzE4MTk5MjIxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "muslim man"
     },
     {
       "id": "avatar-2",
       "description": "User avatar 2",
-      "imageUrl": "https://images.unsplash.com/photo-1531123414780-f74242c2b052?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGVyc29uJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzY1NTcxODQ0fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "person portrait"
+      "imageUrl": "https://images.unsplash.com/photo-1581724458319-8e6581c85a9a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtdXNsaW0lMjBib3l8ZW58MHx8fHwxNzE4MTk5NDk4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "muslim boy"
     },
     {
       "id": "avatar-3",
       "description": "User avatar 3",
-      "imageUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjU1NzE4NDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "person portrait"
+      "imageUrl": "https://images.unsplash.com/photo-1610991950349-62c87532d242?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtdXNsaW0lMjBnaXJsfGVufDB8fHx8MTcxODE5OTIzOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "muslim girl"
     },
     {
       "id": "avatar-4",
@@ -129,7 +129,7 @@
     {
       "id": "service-1",
       "description": "Tutoring service",
-      "imageUrl": "https://images.unsplash.com/photo-1758525860435-502240649c59?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0dXRvcmluZyUyMHNlc3Npb258ZW58MHx8fHwxNzY1NjIyNTUyfDA&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1758525860435-502240649c59?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx0dXRvcmluZyUyMHNlc3Npb258ZW58MHx8fHwxNzY1NjIyNTUyfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "tutoring session"
     },
     {
