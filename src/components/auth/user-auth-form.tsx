@@ -23,6 +23,7 @@ import { colleges } from "@/lib/data";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
   mode: "login" | "signup";
+  accountType?: 'provider' | 'seeker';
 }
 
 const loginSchema = z.object({
@@ -34,6 +35,7 @@ const signupSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
   collegeId: z.string({ required_error: "Please select your college." }).min(1, "Please select your college."),
+  accountType: z.enum(['provider', 'seeker']),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -41,7 +43,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 const approvedColleges = colleges.filter(c => c.approvalStatus);
 
-export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
+export function UserAuthForm({ className, mode, accountType = 'seeker', ...props }: UserAuthFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
@@ -50,6 +52,7 @@ export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
+    defaultValues: mode === 'signup' ? { accountType } : {},
   });
 
   async function onSubmit(data: z.infer<typeof schema>) {
@@ -62,8 +65,12 @@ export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
         title: mode === 'login' ? "Signed In" : "Account Created",
         description: `Welcome! You have been successfully ${mode === 'login' ? 'signed in' : 'signed up'}.`
       })
-      // On success, redirect to dashboard
-      router.push("/dashboard");
+      // On success, redirect based on mode
+      if (mode === 'login') {
+        router.push("/dashboard");
+      } else {
+        router.push("/profile");
+      }
     }, 1500);
   }
 
@@ -104,26 +111,29 @@ export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
             )}
           </div>
           {mode === "signup" && (
-            <div className="grid gap-2">
-              <Label htmlFor="college">College</Label>
-              <Select onValueChange={(value) => form.setValue('collegeId', value, { shouldValidate: true })} disabled={isLoading}>
-                <SelectTrigger id="college">
-                  <SelectValue placeholder="Select your college" />
-                </SelectTrigger>
-                <SelectContent>
-                  {approvedColleges.map((college) => (
-                    <SelectItem key={college.id} value={college.id}>
-                      {college.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {form.formState.errors.collegeId && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.collegeId.message}
-                </p>
-              )}
-            </div>
+            <>
+              <input type="hidden" {...form.register("accountType")} />
+              <div className="grid gap-2">
+                <Label htmlFor="college">College</Label>
+                <Select onValueChange={(value) => form.setValue('collegeId', value, { shouldValidate: true })} disabled={isLoading}>
+                  <SelectTrigger id="college">
+                    <SelectValue placeholder="Select your college" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {approvedColleges.map((college) => (
+                      <SelectItem key={college.id} value={college.id}>
+                        {college.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.collegeId && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.collegeId.message}
+                  </p>
+                )}
+              </div>
+            </>
           )}
           <Button disabled={isLoading} className="mt-2">
             {isLoading && (
