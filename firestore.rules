@@ -1,3 +1,4 @@
+
 /**
  * @file firestore.rules
  * @description Firestore Security Rules for a Hyderabad-focused student talent platform.
@@ -140,53 +141,7 @@ service cloud.firestore {
     match /colleges/{collegeId} {
       allow read: if true;
       allow write: if false; // Managed by backend/admins only
-    }
 
-    /**
-     * @description Defines rules for the 'subscriptions' collection.
-     * This data is sensitive and should not be directly exposed to clients.
-     * @path /subscriptions/{subscriptionId}
-     * @allow (none) No client can directly read or write subscription data.
-     * @deny (get) A client application cannot fetch subscription details directly.
-     * @principle Enforces maximum security on sensitive data by denying all client access.
-     */
-    match /subscriptions/{subscriptionId} {
-      allow read, write: if false; // Managed by backend/admins only
-    }
-
-    /**
-     * @description Defines rules for the 'skills' collection.
-     * This is a global list of skills, public-readable but centrally managed.
-     * @path /skills/{skillId}
-     * @allow (list) Any user, signed in or not, can list all available skills.
-     * @deny (update) A regular user cannot modify a skill. This is an admin task.
-     * @principle Protects master data by making it read-only for clients.
-     */
-    match /skills/{skillId} {
-      allow read: if true;
-      allow write: if false; // Managed by backend/admins only
-    }
-    
-    /**
-     * @description Defines rules for the 'ratings' collection.
-     * Ratings are public to view, but only the author can create, update, or delete them.
-     * @path /ratings/{ratingId}
-     * @allow (create) A signed-in user ('user_abc') can create a rating where `raterId` is 'user_abc'.
-     * @deny (update) A user ('user_xyz') cannot update a rating created by 'user_abc'.
-     * @principle Implements a "Public Read, Owner Write" model based on the 'raterId' field.
-     */
-    match /ratings/{ratingId} {
-      allow read: if true;
-      allow create: if isSignedIn() && hasValidNewRatingFields();
-      allow update: if isExistingOwner(request.resource.data.raterId) && hasImmutableRatingFields();
-      allow delete: if isExistingOwner(request.resource.data.raterId);
-    }
-    
-    /**
-     * @description Nested rules for student-specific data within a college.
-     */
-    match /colleges/{collegeId} {
-    
       /**
        * @description Defines rules for the 'students' subcollection.
        * A student document is the root for all of a user's private data.
@@ -234,5 +189,47 @@ service cloud.firestore {
         }
       }
     }
+
+    /**
+     * @description Defines rules for the 'subscriptions' collection.
+     * This data is sensitive and should not be directly exposed to clients.
+     * @path /subscriptions/{subscriptionId}
+     * @allow (none) No client can directly read or write subscription data.
+     * @deny (get) A client application cannot fetch subscription details directly.
+     * @principle Enforces maximum security on sensitive data by denying all client access.
+     */
+    match /subscriptions/{subscriptionId} {
+      allow read, write: if false; // Managed by backend/admins only
+    }
+
+    /**
+     * @description Defines rules for the 'skills' collection.
+     * This is a global list of skills, public-readable but centrally managed.
+     * @path /skills/{skillId}
+     * @allow (list) Any user, signed in or not, can list all available skills.
+     * @deny (update) A regular user cannot modify a skill. This is an admin task.
+     * @principle Protects master data by making it read-only for clients.
+     */
+    match /skills/{skillId} {
+      allow read: if true;
+      allow write: if false; // Managed by backend/admins only
+    }
+    
+    /**
+     * @description Defines rules for the 'ratings' collection.
+     * Ratings are public to view, but only the author can create, update, or delete them.
+     * @path /ratings/{ratingId}
+     * @allow (create) A signed-in user ('user_abc') can create a rating where `raterId` is 'user_abc'.
+     * @deny (update) A user ('user_xyz') cannot update a rating created by 'user_abc'.
+     * @principle Implements a "Public Read, Owner Write" model based on the 'raterId' field.
+     */
+    match /ratings/{ratingId} {
+      allow read: if true;
+      allow create: if isSignedIn() && hasValidNewRatingFields();
+      allow update: if isExistingOwner(request.resource.data.raterId) && hasImmutableRatingFields();
+      allow delete: if isExistingOwner(request.resource.data.raterId);
+    }
   }
 }
+
+    
