@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
+import { collection, query, where } from "firebase/firestore";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { colleges } from "@/lib/data";
+import { useToast } from "@/hooks/use-toast";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
   mode: "login" | "signup";
@@ -41,8 +43,22 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  
+  const firestore = useFirestore();
+
+  const collegesQuery = useMemoFirebase(
+    () =>
+      firestore
+        ? query(
+            collection(firestore, 'colleges'),
+            where('approvalStatus', '==', true)
+          )
+        : null,
+    [firestore]
+  );
+  const { data: colleges, isLoading: isLoadingColleges } = useCollection(collegesQuery);
+
   const schema = mode === 'login' ? loginSchema : signupSchema;
 
   const form = useForm<z.infer<typeof schema>>({
@@ -55,6 +71,10 @@ export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
+      toast({
+        title: mode === 'login' ? "Signed In" : "Account Created",
+        description: `Welcome! You have been successfully ${mode === 'login' ? 'signed in' : 'signed up'}.`
+      })
       // On success, redirect to dashboard
       router.push("/dashboard");
     }, 1500);
@@ -99,12 +119,13 @@ export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
           {mode === "signup" && (
             <div className="grid gap-2">
               <Label htmlFor="college">College</Label>
-              <Select onValueChange={(value) => form.setValue('collegeId', value, { shouldValidate: true })} disabled={isLoading}>
+              <Select onValueChange={(value) => form.setValue('collegeId', value, { shouldValidate: true })} disabled={isLoading || isLoadingColleges}>
                 <SelectTrigger id="college">
-                  <SelectValue placeholder="Select your college" />
+                  <SelectValue placeholder={isLoadingColleges ? "Loading colleges..." : "Select your college"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {colleges.map((college) => (
+                  {isLoadingColleges && <SelectItem value="loading" disabled>Loading...</SelectItem>}
+                  {colleges && colleges.map((college) => (
                     <SelectItem key={college.id} value={college.id}>
                       {college.name}
                     </SelectItem>
@@ -118,7 +139,7 @@ export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
               )}
             </div>
           )}
-          <Button disabled={isLoading} className="mt-2">
+          <Button disabled={isLoading || (mode === 'signup' && isLoadingColleges)} className="mt-2">
             {isLoading && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}

@@ -9,22 +9,22 @@ import { CollegeRegistrationForm } from "@/components/college/college-registrati
 const subscriptionTiers = [
     {
         name: "Basic",
-        price: "Free",
-        priceDetail: "for up to 500 students",
+        price: "₹5,000",
+        priceDetail: "/year for up to 500 students",
         features: ["Student Authentication", "Service Marketplace", "Basic Support"],
     },
     {
-        name: "Pro",
-        price: "$49",
-        priceDetail: "/month for up to 5000 students",
-        features: ["All Basic Features", "AI Skill Recommendation", "Priority Support", "College-wide Analytics"],
+        name: "Standard",
+        price: "₹10,000",
+        priceDetail: "/year for up to 5000 students",
+        features: ["All Basic Features", "AI Skill Recommendation", "Priority Support"],
         isFeatured: true,
     },
     {
-        name: "Enterprise",
-        price: "Contact Us",
-        priceDetail: "for unlimited students",
-        features: ["All Pro Features", "Custom Branding", "Dedicated Account Manager", "On-campus Promotions"],
+        name: "Premium",
+        price: "₹20,000",
+        priceDetail: "/year for unlimited students",
+        features: ["All Standard Features", "College-wide Analytics", "Custom Branding", "On-campus Promotions"],
     },
 ];
 
@@ -76,7 +76,7 @@ export default function CollegeRegistrationPage() {
                          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
                             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">Subscription Plans</h2>
                             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed">
-                                Choose the plan that's right for your institution.
+                                Choose the plan that's right for your institution. All prices are in INR.
                             </p>
                         </div>
                         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -86,7 +86,7 @@ export default function CollegeRegistrationPage() {
                                         <CardTitle>{tier.name}</CardTitle>
                                         <CardDescription className="flex items-baseline">
                                             <span className="text-4xl font-bold">{tier.price}</span>
-                                            {tier.name !== 'Enterprise' && <span className="ml-1 text-muted-foreground">{tier.priceDetail}</span>}
+                                            <span className="ml-1 text-muted-foreground">{tier.priceDetail}</span>
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="flex-1">

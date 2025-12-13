@@ -1,15 +1,95 @@
+// This file contains mock data for prototyping purposes.
+// In a real application, this data would be fetched from a database.
+
 export const colleges = [
-  { id: '1', name: 'State University' },
-  { id: '2', name: 'City College' },
-  { id: '3', name: 'Tech Institute' },
-  { id: '4', name: 'Liberal Arts College' },
-];
+    {
+      id: 'cbit',
+      name: 'Chaitanya Bharathi Institute of Technology (CBIT)',
+      collegeType: 'Engineering',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      approvalStatus: true,
+    },
+    {
+      id: 'osmania',
+      name: 'Osmania University',
+      collegeType: 'Degree',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      approvalStatus: true,
+    },
+    {
+      id: 'nizam',
+      name: 'Nizam College',
+      collegeType: 'Degree',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      approvalStatus: true,
+    },
+    {
+      id: 'st-francis',
+      name: 'St. Francis College for Women',
+      collegeType: 'Women’s',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      approvalStatus: true,
+    },
+    {
+      id: 'loyola',
+      name: 'Loyola Academy',
+      collegeType: 'Degree',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      approvalStatus: true,
+    },
+    {
+      id: 'aurora',
+      name: 'Aurora’s Degree & PG College',
+      collegeType: 'Degree',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      approvalStatus: true,
+    },
+    {
+      id: 'mjcet',
+      name: 'Muffakham Jah College of Engineering and Technology',
+      collegeType: 'Engineering',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      approvalStatus: true,
+    },
+    {
+      id: 'stanley',
+      name: 'Stanley College of Engineering and Technology for Women',
+      collegeType: 'Women’s',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      approvalStatus: false, // Example of a non-approved college
+    },
+    {
+      id: 'vasavi',
+      name: 'Vasavi College of Engineering',
+      collegeType: 'Engineering',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      approvalStatus: true,
+    },
+    {
+      id: 'av-college',
+      name: 'AV College of Arts, Science and Commerce',
+      collegeType: 'Degree',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      approvalStatus: true,
+    },
+  ];
+  
 
 export const users = [
-  { id: '1', name: 'Alice Johnson', collegeId: '1', rating: 4.8, earnings: 1250.00, avatarId: 'avatar-1' },
-  { id: '2', name: 'Bob Williams', collegeId: '1', rating: 4.5, earnings: 800.00, avatarId: 'avatar-2' },
-  { id: '3', name: 'Charlie Brown', collegeId: '2', rating: 4.9, earnings: 2100.00, avatarId: 'avatar-3' },
-  { id: '4', name: 'Diana Miller', collegeId: '3', rating: 4.7, earnings: 550.00, avatarId: 'avatar-4' },
+  { id: '1', name: 'Alice Johnson', collegeId: 'cbit', rating: 4.8, earnings: 1250.00, avatarId: 'avatar-1' },
+  { id: '2', name: 'Bob Williams', collegeId: 'cbit', rating: 4.5, earnings: 800.00, avatarId: 'avatar-2' },
+  { id: '3', name: 'Charlie Brown', collegeId: 'osmania', rating: 4.9, earnings: 2100.00, avatarId: 'avatar-3' },
+  { id: '4', name: 'Diana Miller', collegeId: 'nizam', rating: 4.7, earnings: 550.00, avatarId: 'avatar-4' },
 ];
 
 export const serviceRequests = [
