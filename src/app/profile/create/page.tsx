@@ -48,7 +48,6 @@ export default function CreateProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userProfile, setUserProfile] = useLocalStorage('userProfile', {});
   const [signupData, setSignupData] = useState<any>(null);
@@ -183,10 +182,6 @@ export default function CreateProfilePage() {
 
         // Save to local storage for immediate access
         setUserProfile(fullProfile);
-
-        // Save to Firestore
-        const userDocRef = doc(firestore, 'users', user.uid);
-        setDocumentNonBlocking(userDocRef, fullProfile, { merge: true });
 
         // Clean up temporary data
         localStorage.removeItem('signupData');

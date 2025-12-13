@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,9 +20,8 @@ import { useLocalStorage } from '@/hooks/use-local-storage';
 import type { ServiceRequestForm } from '@/app/services/new/page';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
-import { useAuth, useDoc, useFirestore, useMemoFirebase, useUser } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { doc } from 'firebase/firestore';
 
 type StoredRequest = ServiceRequestForm & { id: string; status: string; };
 
@@ -43,19 +43,8 @@ export default function ProfilePage() {
     const { toast } = useToast();
     const router = useRouter();
     const auth = useAuth();
-    const { user, isUserLoading } = useUser();
-    const firestore = useFirestore();
-
-    // Fetch the current user's profile from Firestore directly
-    const userDocRef = useMemoFirebase(() => {
-        if (!firestore || !user) return null;
-        return doc(firestore, 'users', user.uid);
-    }, [firestore, user]);
-
-    const { data: currentUser, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
+    const [currentUser, setCurrentUser] = useLocalStorage<UserProfile | null>('userProfile', null);
     
-    const [localProfile, setLocalProfile] = useLocalStorage<UserProfile | null>('userProfile', null);
-
     const userCollege = currentUser ? colleges.find(c => c.id === currentUser.collegeId) : null;
     
     const [isEditing, setIsEditing] = useState(false);
@@ -64,6 +53,7 @@ export default function ProfilePage() {
     const [isAiLoading, setIsAiLoading] = useState(false);
     
     const [myRequests, setMyRequests] = useLocalStorage<(StoredRequest & { title: string })[]>('my-requests', []);
+    const [isLoading, setIsLoading] = useState(true);
 
     const isProvider = currentUser?.accountType === 'provider';
     
@@ -71,12 +61,18 @@ export default function ProfilePage() {
         if (currentUser) {
             setSkills(currentUser.skills || []);
             setProfileSummary(currentUser.tagline || profileSummary);
-            // Sync firestore profile to local storage for other components
-            if (JSON.stringify(currentUser) !== JSON.stringify(localProfile)) {
-                setLocalProfile(currentUser);
-            }
+            setIsLoading(false);
+        } else {
+             // If no profile in local storage, maybe they haven't created one
+             const timeout = setTimeout(() => {
+                // if still no user after a bit, assume not logged in or no profile
+                if(!currentUser) {
+                    router.push('/login');
+                }
+             }, 2000);
+             return () => clearTimeout(timeout);
         }
-    }, [currentUser, localProfile, setLocalProfile, profileSummary]);
+    }, [currentUser, router, profileSummary]);
 
 
     const handleLogout = async () => {
@@ -136,8 +132,8 @@ export default function ProfilePage() {
     };
 
     const handleSaveChanges = () => {
-        if (currentUser && userDocRef) {
-            // updateDocumentNonBlocking(userDocRef, { skills: skills, tagline: profileSummary });
+        if (currentUser) {
+            setCurrentUser({ ...currentUser, skills: skills, tagline: profileSummary });
         }
         setIsEditing(false);
         toast({
@@ -146,7 +142,7 @@ export default function ProfilePage() {
         });
     }
 
-    if (isUserLoading || isProfileLoading) {
+    if (isLoading) {
         return (
              <>
                 <SiteHeader />
