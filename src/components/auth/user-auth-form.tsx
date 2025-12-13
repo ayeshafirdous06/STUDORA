@@ -6,9 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
-import { collection, query, where, orderBy } from "firebase/firestore";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { colleges } from "@/lib/data";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
   mode: "login" | "signup";
@@ -41,27 +39,12 @@ const signupSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 type SignupFormData = z.infer<typeof signupSchema>;
 
+const approvedColleges = colleges.filter(c => c.approvalStatus);
 
 export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const firestore = useFirestore();
-
-  const collegesQuery = useMemoFirebase(
-    () =>
-      firestore
-        ? query(
-            collection(firestore, 'colleges'),
-            where('approvalStatus', '==', true),
-            where('city', '==', 'Hyderabad'),
-            where('state', '==', 'Telangana'),
-            orderBy('name')
-          )
-        : null,
-    [firestore]
-  );
-  const { data: colleges, isLoading: isLoadingColleges } = useCollection(collegesQuery);
 
   const schema = mode === 'login' ? loginSchema : signupSchema;
 
@@ -123,16 +106,12 @@ export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
           {mode === "signup" && (
             <div className="grid gap-2">
               <Label htmlFor="college">College</Label>
-              <Select onValueChange={(value) => form.setValue('collegeId', value, { shouldValidate: true })} disabled={isLoading || isLoadingColleges}>
+              <Select onValueChange={(value) => form.setValue('collegeId', value, { shouldValidate: true })} disabled={isLoading}>
                 <SelectTrigger id="college">
-                  <SelectValue placeholder={isLoadingColleges ? "Loading colleges..." : "Select your college"} />
+                  <SelectValue placeholder="Select your college" />
                 </SelectTrigger>
                 <SelectContent>
-                  {isLoadingColleges && <SelectItem value="loading" disabled>Loading...</SelectItem>}
-                  {!isLoadingColleges && colleges && colleges.length === 0 && (
-                    <SelectItem value="no-colleges" disabled>No approved colleges available.</SelectItem>
-                  )}
-                  {colleges && colleges.map((college) => (
+                  {approvedColleges.map((college) => (
                     <SelectItem key={college.id} value={college.id}>
                       {college.name}
                     </SelectItem>
@@ -146,7 +125,7 @@ export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
               )}
             </div>
           )}
-          <Button disabled={isLoading || (mode === 'signup' && isLoadingColleges)} className="mt-2">
+          <Button disabled={isLoading} className="mt-2">
             {isLoading && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
