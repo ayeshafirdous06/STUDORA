@@ -29,12 +29,14 @@ import {
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { colleges } from '@/lib/data';
+import { Textarea } from '@/components/ui/textarea';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
   username: z.string().min(3, 'Username must be at least 3 characters.').regex(/^[a-z0-9_.]+$/, 'Username can only contain lowercase letters, numbers, underscores, and dots.'),
   avatarUrl: z.string().optional(),
   collegeId: z.string({ required_error: "Please select your college." }).min(1, "Please select your college."),
+  skills: z.string().optional(), // For providers
 });
 
 type ProfileForm = z.infer<typeof profileSchema>;
@@ -55,6 +57,8 @@ export default function CreateProfilePage() {
   
   const approvedColleges = colleges.filter(c => c.approvalStatus);
 
+  const isProvider = signupData?.accountType === 'provider';
+
 
   const {
     register,
@@ -68,7 +72,8 @@ export default function CreateProfilePage() {
     defaultValues: {
       name: '',
       username: '',
-      avatarUrl: ''
+      avatarUrl: '',
+      skills: '',
     }
   });
   
@@ -146,14 +151,15 @@ export default function CreateProfilePage() {
 
     setTimeout(() => {
         try {
+            const skillsArray = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
             const fullProfile = { 
               ...signupData, 
-              ...data, 
+              ...data,
+              skills: skillsArray, 
               id: signupData?.uid || signupData?.email || 'user-1', 
               rating: 4.8, 
               earnings: 1250.00,
               accountType: signupData?.accountType || 'seeker',
-              // Provide a fallback Dicebear avatar if no image is uploaded
               avatarUrl: data.avatarUrl || `https://api.dicebear.com/8.x/initials/svg?seed=${data.name}`
             }; 
             setUserProfile(fullProfile);
@@ -175,12 +181,12 @@ export default function CreateProfilePage() {
 
   return (
     <>
-    <div className="container flex min-h-screen flex-col items-center justify-center">
+    <div className="container flex min-h-screen flex-col items-center justify-center py-8">
       <div className="w-full max-w-xl lg:p-8">
         <BackButton />
         <Card className="mx-auto">
           <CardHeader>
-            <CardTitle className="text-2xl font-headline">Create Your Profile</CardTitle>
+            <CardTitle className="text-2xl font-headline">Create Your {isProvider ? "Provider" : ""} Profile</CardTitle>
             <CardDescription>Just one more step. Let's get your profile ready.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -248,6 +254,21 @@ export default function CreateProfilePage() {
                   </p>
                 )}
               </div>
+              
+              {isProvider && (
+                <div className="space-y-2">
+                  <Label htmlFor="skills">Your Skills</Label>
+                  <Textarea
+                    id="skills"
+                    placeholder="e.g., Web Design, Tutoring, Video Editing, Baking..."
+                    {...register('skills')}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    List the services you want to offer, separated by commas.
+                  </p>
+                  {errors.skills && <p className="text-sm text-destructive">{errors.skills.message}</p>}
+                </div>
+              )}
 
 
               <Button type="submit" disabled={isSubmitting} className="w-full">
