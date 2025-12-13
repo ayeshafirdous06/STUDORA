@@ -8,8 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SiteHeader } from '@/components/common/site-header';
-import { users, serviceRequests as mockRequests, colleges } from '@/lib/data';
-import { placeholderImages } from '@/lib/placeholder-images';
+import { colleges } from '@/lib/data';
 import { Star, Edit, DollarSign, Sparkles, Loader2, Save } from 'lucide-react';
 import { recommendSkillsForProvider } from '@/ai/flows/skill-recommendation-for-providers';
 import { useToast } from '@/hooks/use-toast';
@@ -18,28 +17,45 @@ import { Label } from '@/components/ui/label';
 import { BackButton } from '@/components/common/back-button';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import type { ServiceRequestForm } from '@/app/services/new/page';
-
-// In a real app, this would come from an auth hook like useUser()
-const currentUserId = '1'; 
+import { Skeleton } from '@/components/ui/skeleton';
 
 type StoredRequest = ServiceRequestForm & { id: string; status: string; };
 
+type UserProfile = {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  collegeId: string;
+  avatarUrl: string;
+  rating: number;
+  earnings: number;
+};
+
 export default function ProfilePage() {
     const { toast } = useToast();
+    
+    const [currentUser, setCurrentUser] = useLocalStorage<UserProfile | null>('userProfile', null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // In a real app, these would be fetched from your database for the current user
-    const [currentUser, setCurrentUser] = useState(() => users.find(u => u.id === currentUserId)!);
-    const userAvatar = placeholderImages.find(p => p.id === currentUser.avatarId);
-    const userCollege = colleges.find(c => c.id === currentUser.collegeId);
+    const userCollege = currentUser ? colleges.find(c => c.id === currentUser.collegeId) : null;
     
     const [isEditing, setIsEditing] = useState(false);
     const [profileSummary, setProfileSummary] = useState("I'm a third-year design student specializing in branding and digital illustration. I have experience with Adobe Creative Suite and have completed several freelance logo design projects. I'm passionate about creating visually compelling identities for clubs and student startups.");
     const [skills, setSkills] = useState<string[]>(['Graphic Design', 'Logo Design', 'Adobe Illustrator', 'Branding', 'UI/UX']);
     const [isAiLoading, setIsAiLoading] = useState(false);
     
-    // This simulates fetching requests created by the user
-    const [myRequests] = useLocalStorage<StoredRequest[]>('my-requests', []);
-    const allUserRequests = [...mockRequests.filter(r => r.studentId === currentUser.id), ...myRequests];
+    const [myRequests, setMyRequests] = useLocalStorage<StoredRequest[]>('my-requests', []);
+
+    useEffect(() => {
+        // Simulate loading user data
+        if (currentUser) {
+            setIsLoading(false);
+        } else {
+            // Handle case where profile is not found, maybe redirect
+            setTimeout(() => setIsLoading(false), 1000);
+        }
+    }, [currentUser]);
 
     const handleGetRecommendations = async () => {
         if (!profileSummary) {
@@ -86,6 +102,49 @@ export default function ProfilePage() {
         });
     }
 
+    if (isLoading) {
+        return (
+             <>
+                <SiteHeader />
+                <div className="container py-8">
+                    <Skeleton className="h-8 w-24 mb-4" />
+                    <Card className="mb-8">
+                        <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
+                            <Skeleton className="h-32 w-32 rounded-full" />
+                            <div className="flex-1 space-y-2">
+                                <Skeleton className="h-8 w-48" />
+                                <Skeleton className="h-6 w-64" />
+                                <Skeleton className="h-6 w-80" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 space-y-4">
+                            <Skeleton className="h-10 w-64" />
+                            <Skeleton className="h-40 w-full" />
+                        </div>
+                        <div className="space-y-4">
+                            <Skeleton className="h-10 w-48" />
+                            <Skeleton className="h-64 w-full" />
+                        </div>
+                    </div>
+                </div>
+            </>
+        )
+    }
+
+    if (!currentUser) {
+        return (
+            <>
+                <SiteHeader />
+                <div className="container py-8 text-center">
+                    <p>Could not load user profile. Please try again.</p>
+                </div>
+            </>
+        )
+    }
+
+
     return (
         <>
             <SiteHeader />
@@ -94,12 +153,12 @@ export default function ProfilePage() {
                 <Card className="mb-8">
                     <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
                         <Avatar className="h-24 w-24 md:h-32 md:w-32 border">
-                            {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt={currentUser.name} />}
+                            {currentUser.avatarUrl && <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />}
                             <AvatarFallback className="text-4xl">{currentUser.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 text-center md:text-left">
                             <h1 className="text-3xl font-bold font-headline">{currentUser.name}</h1>
-                            <p className="text-muted-foreground">Student at {userCollege?.name}</p>
+                            <p className="text-muted-foreground">@{currentUser.username} &middot; Student at {userCollege?.name}</p>
                             <div className="flex items-center justify-center md:justify-start mt-2">
                                 <div className="flex items-center">
                                     <Star className="h-5 w-5 text-yellow-400 fill-yellow-400 mr-1" />
@@ -148,7 +207,7 @@ export default function ProfilePage() {
                             </TabsContent>
                              <TabsContent value="requests" className="mt-4">
                                 <div className="space-y-4">
-                                    {allUserRequests.map(request => (
+                                    {myRequests.map(request => (
                                         <Card key={request.id}>
                                             <CardContent className="p-4 flex items-center justify-between">
                                                 <div>
@@ -159,7 +218,7 @@ export default function ProfilePage() {
                                             </CardContent>
                                         </Card>
                                     ))}
-                                    {allUserRequests.length === 0 && <p className="text-muted-foreground text-sm p-4">You haven't posted any requests yet.</p>}
+                                    {myRequests.length === 0 && <p className="text-muted-foreground text-sm p-4">You haven't posted any requests yet.</p>}
                                 </div>
                             </TabsContent>
                             <TabsContent value="reviews" className="mt-4">
@@ -217,3 +276,5 @@ export default function ProfilePage() {
         </>
     )
 }
+
+    

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { colleges } from "@/lib/data";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -46,6 +47,8 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [, setUserProfile] = useLocalStorage('userProfile', {});
+
 
   const approvedColleges = colleges.filter(c => c.approvalStatus);
 
@@ -63,10 +66,9 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     setTimeout(() => {
       setIsLoading(false);
       if (mode === 'signup') {
-        const { collegeId } = data as SignupFormData;
-        // Store collegeId temporarily to simulate passing it to the next step
+        // Store signup data temporarily to pass to the next step
         try {
-            localStorage.setItem('collegeId', collegeId);
+            localStorage.setItem('signupData', JSON.stringify(data));
         } catch (e) {
             console.error("Local storage is unavailable.");
         }
@@ -76,11 +78,29 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
         });
         router.push("/profile/create");
       } else { // Login mode
-        toast({
-          title: "Signed In",
-          description: "Welcome back!"
-        });
-        router.push("/dashboard");
+        // For login, we'll check if a profile exists in local storage
+         try {
+            const storedProfile = localStorage.getItem('userProfile');
+            if (storedProfile && Object.keys(JSON.parse(storedProfile)).length > 0) {
+                 toast({
+                    title: "Signed In",
+                    description: "Welcome back!"
+                });
+                router.push("/dashboard");
+            } else {
+                 toast({
+                    variant: "destructive",
+                    title: "Login Failed",
+                    description: "No profile found for this user. Please sign up."
+                });
+            }
+        } catch (e) {
+             toast({
+                variant: "destructive",
+                title: "Login Error",
+                description: "Could not access user profile."
+            });
+        }
       }
     }, 1500);
   }
@@ -145,7 +165,7 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
                 </Select>
                 {form.formState.errors.collegeId && (
                   <p className="text-sm text-destructive">
-                    {form.formState.errors.collegeId.message}
+                    {form.formŠtate.errors.collegeId.message}
                   </p>
                 )}
               </div>
@@ -162,3 +182,5 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     </div>
   );
 }
+
+    
