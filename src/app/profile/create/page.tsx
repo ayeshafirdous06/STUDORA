@@ -5,8 +5,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
-import { useFirebase } from '@/firebase/provider';
-import { setDoc, doc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +13,6 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { BackButton } from '@/components/common/back-button';
-import { setDocumentNonBlocking } from '@/firebase';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -26,7 +23,6 @@ type ProfileForm = z.infer<typeof profileSchema>;
 export default function CreateProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, firestore } = useFirebase();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -38,53 +34,25 @@ export default function CreateProfilePage() {
   });
 
   const onSubmit = async (data: ProfileForm) => {
-    if (!user || !firestore) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'You must be signed in to create a profile.',
-      });
-      return;
-    }
-    
     setIsSubmitting(true);
-    
-    const collegeId = localStorage.getItem('collegeId');
-    if (!collegeId) {
+
+    // Simulate saving the profile
+    setTimeout(() => {
+        try {
+            // In a real app, you'd save this to local storage or a mock user object
+            localStorage.removeItem('collegeId'); // Clean up simulation
+        } catch (e) {
+            console.error("Local storage is unavailable.");
+        }
+
         toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Could not find your college selection. Please sign up again.',
+            title: 'Profile Created!',
+            description: 'Your profile has been successfully created.',
         });
-        router.push('/signup');
-        return;
-    }
-    
-    try {
-      const studentRef = doc(firestore, `colleges/${collegeId}/students`, user.uid);
-      await setDoc(studentRef, {
-        id: user.uid,
-        name: data.name,
-        email: user.email,
-        collegeId: collegeId,
-      });
+        router.push('/dashboard');
+        setIsSubmitting(false);
 
-      localStorage.removeItem('collegeId'); // Clean up
-
-      toast({
-        title: 'Profile Created!',
-        description: 'Your profile has been successfully created.',
-      });
-      router.push('/dashboard');
-    } catch (error: any) {
-      console.error('Error creating profile:', error);
-       toast({
-        variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: error.message || 'Could not create your profile.',
-      });
-      setIsSubmitting(false);
-    }
+    }, 1000);
   };
 
   return (

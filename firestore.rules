@@ -34,6 +34,7 @@
  * To ensure fast and secure rule execution, authorization data is denormalized where necessary.
  * For example, the /colleges/{collegeId} document contains a `subscriptionId`. This allows the
  * student creation rule to check subscription status with a direct `get()` call, avoiding slow
+
  * and complex queries.
  *
  * @section Structural Segregation
@@ -234,5 +235,3 @@ service cloud.firestore {
     }
   }
 }
-
-    

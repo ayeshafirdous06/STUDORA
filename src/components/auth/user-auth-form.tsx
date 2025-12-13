@@ -19,14 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/firebase";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
-import { useCollection } from "@/firebase/firestore/use-collection";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
-import { useFirestore, useMemoFirebase } from "@/firebase/provider";
+import { colleges } from "@/lib/data";
 
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -52,20 +45,9 @@ type SignupFormData = z.infer<typeof signupSchema>;
 export function UserAuthForm({ className, mode, accountType = 'seeker', ...props }: UserAuthFormProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const auth = useAuth();
-  const firestore = useFirestore();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
-  const collegesQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(
-        collection(firestore, "colleges"), 
-        where("approvalStatus", "==", true),
-        orderBy("name", "asc")
-    );
-  }, [firestore]);
-
-  const { data: approvedColleges, isLoading: isLoadingColleges } = useCollection(collegesQuery);
+  const approvedColleges = colleges.filter(c => c.approvalStatus);
 
   const schema = mode === 'login' ? loginSchema : signupSchema;
 
@@ -77,36 +59,30 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
   async function onSubmit(data: z.infer<typeof schema>) {
     setIsLoading(true);
 
-    try {
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
       if (mode === 'signup') {
-        const { email, password, collegeId } = data as SignupFormData;
-        await createUserWithEmailAndPassword(auth, email, password);
-        // Store collegeId temporarily to retrieve on the create-profile page
-        localStorage.setItem('collegeId', collegeId);
+        const { collegeId } = data as SignupFormData;
+        // Store collegeId temporarily to simulate passing it to the next step
+        try {
+            localStorage.setItem('collegeId', collegeId);
+        } catch (e) {
+            console.error("Local storage is unavailable.");
+        }
         toast({
           title: "Account Created",
           description: "One more step to set up your profile."
         });
         router.push("/profile/create");
       } else { // Login mode
-        const { email, password } = data as LoginFormData;
-        await signInWithEmailAndPassword(auth, email, password);
         toast({
           title: "Signed In",
           description: "Welcome back!"
         });
         router.push("/dashboard");
       }
-    } catch (error: any) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Authentication Failed",
-        description: error.message || "An unexpected error occurred.",
-      });
-      setIsLoading(false);
-    }
-    // Don't setIsLoading(false) on success because we are navigating away
+    }, 1500);
   }
 
 
@@ -151,14 +127,12 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
               <input type="hidden" {...form.register("accountType")} />
               <div className="grid gap-2">
                 <Label htmlFor="college">College</Label>
-                <Select onValueChange={(value) => form.setValue('collegeId', value, { shouldValidate: true })} disabled={isLoading || isLoadingColleges}>
+                <Select onValueChange={(value) => form.setValue('collegeId', value, { shouldValidate: true })} disabled={isLoading}>
                   <SelectTrigger id="college">
-                    <SelectValue placeholder={isLoadingColleges ? "Loading colleges..." : "Select your college"} />
+                    <SelectValue placeholder={"Select your college"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {isLoadingColleges ? (
-                        <SelectItem value="loading" disabled>Loading...</SelectItem>
-                    ) : approvedColleges && approvedColleges.length > 0 ? (
+                    {approvedColleges.length > 0 ? (
                       approvedColleges.map((college) => (
                         <SelectItem key={college.id} value={college.id}>
                           {college.name}
