@@ -173,13 +173,15 @@ service cloud.firestore {
      * @path /serviceRequests/{serviceRequestId}
      */
     match /serviceRequests/{serviceRequestId} {
-        // Any authenticated user can list/read all service requests.
-        allow list, get: if isSignedIn();
+        // Any authenticated user can read any single service request.
+        allow get: if isSignedIn();
         // A user can only create a service request for themselves.
         allow create: if isValidOwnedDocCreation();
         // The user who created the request can update or delete it.
         allow update: if isExistingDocOwner('studentId') && isOwnedDocDataImmutable();
         allow delete: if isExistingDocOwner('studentId');
+        // Any authenticated user can list (query) the entire collection.
+        allow list: if isSignedIn();
     }
 
 
@@ -205,5 +207,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
