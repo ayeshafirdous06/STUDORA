@@ -46,7 +46,7 @@ export default function ProfilePage() {
     const [skills, setSkills] = useState<string[]>(['Graphic Design', 'Logo Design', 'Adobe Illustrator', 'Branding', 'UI/UX']);
     const [isAiLoading, setIsAiLoading] = useState(false);
     
-    const [myRequests, setMyRequests] = useLocalStorage<StoredRequest[]>('my-requests', []);
+    const [myRequests, setMyRequests] = useLocalStorage<(StoredRequest & { title: string })[]>('my-requests', []);
 
     const isProvider = currentUser?.accountType === 'provider';
 

@@ -124,7 +124,7 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
             />
             {form.formState.errors.email && (
               <p className="text-sm text-destructive">
-                {form.formState.errors.email.message}
+                {String(form.formState.errors.email?.message)}
               </p>
             )}
           </div>
@@ -138,7 +138,7 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
             />
             {form.formState.errors.password && (
               <p className="text-sm text-destructive">
-                {form.formState.errors.password.message}
+                {String(form.formState.errors.password?.message)}
               </p>
             )}
           </div>
@@ -165,7 +165,7 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
                 </Select>
                 {form.formState.errors.collegeId && (
                   <p className="text-sm text-destructive">
-                    {form.formŠtate.errors.collegeId.message}
+                    {String(form.formState.errors.collegeId?.message)}
                   </p>
                 )}
               </div>
@@ -182,5 +182,3 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     </div>
   );
 }
-
-    
