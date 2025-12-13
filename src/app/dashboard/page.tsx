@@ -10,9 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase";
-import { collection, query, where, doc } from "firebase/firestore";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useUser } from "@/firebase";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { serviceRequests, serviceProviders } from "@/lib/data";
@@ -115,7 +113,7 @@ export default function DashboardPage() {
                                             </div>
                                     )}
                                     <div className="flex items-center gap-2">
-                                        {isProvider && user?.uid !== request.studentId && <Button variant="outline" size="sm">Make Offer</Button>}
+                                        {isProvider && user?.uid !== request.studentId && <Button variant="outline" size="sm">Place Bid</Button>}
                                         {currentUser?.id === request.studentId && <Button variant="ghost" size="sm">Manage</Button>}
                                     </div>
                                     </CardFooter>
@@ -139,13 +137,13 @@ export default function DashboardPage() {
                             const providerAvatar = placeholderImages.find(p => p.id === provider.avatarId);
                             return (
                                 <Card key={provider.id}>
-                                    <CardHeader className="items-center text-center">
-                                        <CardTitle className="text-2xl">{provider.name}</CardTitle>
-                                        <p className="text-sm text-muted-foreground">@{provider.username}</p>
-                                        <Avatar className="h-24 w-24 mt-4">
+                                    <CardHeader className="flex flex-col items-center text-center">
+                                        <Avatar className="h-24 w-24 mb-4">
                                             {providerAvatar && <AvatarImage src={providerAvatar.imageUrl} alt={provider.name} />}
                                             <AvatarFallback className="text-3xl">{provider.name.charAt(0)}</AvatarFallback>
                                         </Avatar>
+                                        <CardTitle className="text-2xl">{provider.name}</CardTitle>
+                                        <p className="text-sm text-muted-foreground">@{provider.username}</p>
                                     </CardHeader>
                                     <CardContent className="text-center">
                                         <p className="text-sm text-muted-foreground mb-3 line-clamp-2 h-10">{provider.tagline}</p>
