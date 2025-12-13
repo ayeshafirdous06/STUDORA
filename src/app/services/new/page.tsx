@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { BackButton } from '@/components/common/back-button';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
 const serviceRequestSchema = z.object({
   title: z.string().min(10, 'Title must be at least 10 characters.'),
@@ -30,7 +31,7 @@ const serviceRequestSchema = z.object({
   deadline: z.date({ required_error: 'A deadline is required.' }),
 });
 
-type ServiceRequestForm = z.infer<typeof serviceRequestSchema>;
+export type ServiceRequestForm = z.infer<typeof serviceRequestSchema>;
 
 export default function NewServiceRequestPage() {
   const router = useRouter();
@@ -38,6 +39,7 @@ export default function NewServiceRequestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [recommendedSkills, setRecommendedSkills] = useState<string[]>([]);
+  const [myRequests, setMyRequests] = useLocalStorage<ServiceRequestForm[]>('my-requests', []);
   
   const { register, handleSubmit, control, watch, formState: { errors } } = useForm<ServiceRequestForm>({
     resolver: zodResolver(serviceRequestSchema),
@@ -78,14 +80,17 @@ export default function NewServiceRequestPage() {
   
   const onSubmit = (data: ServiceRequestForm) => {
     setIsSubmitting(true);
-    // Simulate API call
+    // Simulate API call and update local storage
     setTimeout(() => {
+      const newRequest = { ...data, id: `req-${Date.now()}`, status: 'Open' };
+      setMyRequests([...myRequests, newRequest]);
+      
       setIsSubmitting(false);
       toast({
         title: 'Request Posted!',
-        description: 'Your service request has been successfully posted to the marketplace.',
+        description: 'Your service request has been successfully posted. View it on your profile.',
       });
-      router.push('/dashboard');
+      router.push('/profile');
     }, 1500);
   };
   

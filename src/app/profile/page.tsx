@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SiteHeader } from '@/components/common/site-header';
-import { users, serviceRequests, colleges } from '@/lib/data';
+import { users, serviceRequests as mockRequests, colleges } from '@/lib/data';
 import { placeholderImages } from '@/lib/placeholder-images';
 import { Star, Edit, DollarSign, Sparkles, Loader2 } from 'lucide-react';
 import { recommendSkillsForProvider } from '@/ai/flows/skill-recommendation-for-providers';
@@ -15,15 +15,18 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { BackButton } from '@/components/common/back-button';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import type { ServiceRequestForm } from '@/app/services/new/page';
 
 // Mock current user
 const currentUser = users[0];
 const userAvatar = placeholderImages.find(p => p.id === currentUser.avatarId);
 const userCollege = colleges.find(c => c.id === currentUser.collegeId);
-const userRequests = serviceRequests.filter(r => r.studentId === currentUser.id);
 
 // Mock skills
 const initialSkills = ['Graphic Design', 'Logo Design', 'Adobe Illustrator', 'Branding', 'UI/UX'];
+
+type StoredRequest = ServiceRequestForm & { id: string; status: string; };
 
 export default function ProfilePage() {
     const { toast } = useToast();
@@ -31,6 +34,10 @@ export default function ProfilePage() {
     const [profileSummary, setProfileSummary] = useState("I'm a third-year design student specializing in branding and digital illustration. I have experience with Adobe Creative Suite and have completed several freelance logo design projects. I'm passionate about creating visually compelling identities for clubs and student startups.");
     const [skills, setSkills] = useState<string[]>(initialSkills);
     const [isAiLoading, setIsAiLoading] = useState(false);
+    const [myRequests, setMyRequests] = useLocalStorage<StoredRequest[]>('my-requests', []);
+    
+    // Combine mock requests with locally stored requests
+    const allUserRequests = [...mockRequests.filter(r => r.studentId === currentUser.id), ...myRequests];
 
     const handleGetRecommendations = async () => {
         setIsAiLoading(true);
@@ -115,7 +122,7 @@ export default function ProfilePage() {
                             </TabsContent>
                              <TabsContent value="requests" className="mt-4">
                                 <div className="space-y-4">
-                                    {userRequests.map(request => (
+                                    {allUserRequests.map(request => (
                                         <Card key={request.id}>
                                             <CardContent className="p-4 flex items-center justify-between">
                                                 <div>
@@ -126,7 +133,7 @@ export default function ProfilePage() {
                                             </CardContent>
                                         </Card>
                                     ))}
-                                    {userRequests.length === 0 && <p className="text-muted-foreground text-sm p-4">You haven't posted any requests yet.</p>}
+                                    {allUserRequests.length === 0 && <p className="text-muted-foreground text-sm p-4">You haven't posted any requests yet.</p>}
                                 </div>
                             </TabsContent>
                             <TabsContent value="reviews" className="mt-4">

@@ -10,20 +10,20 @@ import { BackButton } from "@/components/common/back-button";
 const subscriptionTiers = [
     {
         name: "Basic",
-        price: "₹5,000",
+        price: "$100",
         priceDetail: "/year for up to 500 students",
         features: ["Student Authentication", "Service Marketplace", "Basic Support"],
     },
     {
         name: "Standard",
-        price: "₹10,000",
+        price: "$200",
         priceDetail: "/year for up to 5000 students",
         features: ["All Basic Features", "AI Skill Recommendation", "Priority Support"],
         isFeatured: true,
     },
     {
         name: "Premium",
-        price: "₹20,000",
+        price: "$400",
         priceDetail: "/year for unlimited students",
         features: ["All Standard Features", "College-wide Analytics", "Custom Branding", "On-campus Promotions"],
     },
@@ -78,7 +78,7 @@ export default function CollegeRegistrationPage() {
                          <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
                             <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">Subscription Plans</h2>
                             <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed">
-                                Choose the plan that's right for your institution. All prices are in INR.
+                                Choose the plan that's right for your institution.
                             </p>
                         </div>
                         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
