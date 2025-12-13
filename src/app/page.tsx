@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { placeholderImages } from '@/lib/placeholder-images';
 
 export default function AccountTypeSelectionPage() {
-  const heroImage = placeholderImages.find(p => p.id === 'hero-charminar');
+  const heroImage = placeholderImages.find(p => p.id === 'college-registration');
 
   return (
     <div className="relative flex min-h-screen flex-col">
