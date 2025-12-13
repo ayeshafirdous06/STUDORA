@@ -82,6 +82,22 @@ export const colleges = [
       state: 'Telangana',
       approvalStatus: true,
     },
+    {
+      id: 'lords',
+      name: 'Lords Institute of Engineering and Technology',
+      collegeType: 'Engineering',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      approvalStatus: true,
+    },
+    {
+      id: 'st-anns',
+      name: 'St. Ann\'s College for Women',
+      collegeType: 'Women’s',
+      city: 'Hyderabad',
+      state: 'Telangana',
+      approvalStatus: true,
+    },
   ];
   
 
