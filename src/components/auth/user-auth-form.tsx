@@ -75,28 +75,21 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
 
-        // Simulate checking if a profile exists and creating one.
-        // In a real app, you would check Firestore for a document with the user's UID.
-        const storedProfile = localStorage.getItem('userProfile');
-        
         toast({
             title: "Signed In with Google",
             description: `Welcome, ${user.displayName}!`
         });
-
-        if (storedProfile && JSON.parse(storedProfile)?.id === user.uid) {
-             router.push("/dashboard");
-        } else {
-             const googleSignupData = {
-                email: user.email,
-                name: user.displayName,
-                uid: user.uid,
-                username: generateUsernameFromEmail(user.email),
-                accountType: 'seeker' // Default, could be refined
-            };
-            localStorage.setItem('signupData', JSON.stringify(googleSignupData));
-            router.push("/profile/create");
-        }
+        
+        // Prepare signup data and redirect to profile creation for all Google sign-ins
+        const googleSignupData = {
+            email: user.email,
+            name: user.displayName,
+            uid: user.uid,
+            username: generateUsernameFromEmail(user.email),
+            accountType: 'seeker' // Default for new sign-ups, user can be a provider too
+        };
+        localStorage.setItem('signupData', JSON.stringify(googleSignupData));
+        router.push("/profile/create");
 
     } catch (error) {
         console.error("Google sign-in error", error);
