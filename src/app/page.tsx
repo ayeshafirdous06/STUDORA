@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { placeholderImages } from '@/lib/placeholder-images';
 
 export default function AccountTypeSelectionPage() {
-  const heroImage = placeholderImages.find(p => p.id === 'hero-students-collaborating');
+  const heroImage = placeholderImages.find(p => p.id === 'college-registration');
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -22,7 +22,7 @@ export default function AccountTypeSelectionPage() {
              fill
              className="object-cover"
            />
-           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
+           <div className="absolute inset-0 bg-black/70" />
          </div>
        )}
 
