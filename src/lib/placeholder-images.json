@@ -57,7 +57,7 @@
     {
       "id": "avatar-car-1",
       "description": "Car avatar 1",
-      "imageUrl": "https://images.unsplash.com/photo-1707999494553-27506fa302a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2FyJTIwaWxsdXN0cmF0aW9ufGVufDB8fHx8MTc2NTYzMjY3OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1707999494553-27506fa302a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2FyJTIwaWxsdXN0cmF0aW9ufGVufDB8fHx8MTc2NTYzMjY3OXww&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "car illustration"
     },
     {
@@ -81,7 +81,7 @@
     {
       "id": "avatar-alien-1",
       "description": "Alien avatar 1",
-      "imageUrl": "https://images.unsplash.com/photo-1732780769509-67862ed50b03?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxhbGllbiUyMGNhcnRvb258ZW58MHx8fHwxNzY1NjMzMzc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1732780769509-67862ed50b03?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxhbGllbiUyMGNhcnRvb258ZW58MHx8fHwxNzY1NjMzMzc2fDA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "alien cartoon"
     },
     {
