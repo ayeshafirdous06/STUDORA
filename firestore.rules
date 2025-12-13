@@ -133,13 +133,13 @@ service cloud.firestore {
      * @description Defines rules for the 'colleges' collection.
      * This collection is public-readable but centrally managed.
      * @path /colleges/{collegeId}
-     * @allow (get) Any user, signed in or not, can read a college's details.
+     * @allow (get, list) Any user, signed in or not, can read a college's details.
      * @deny (create) A regular user cannot create a new college document. This is an admin task.
      * @principle Protects master data by making it read-only for clients.
      */
     match /colleges/{collegeId} {
-      allow get, list: if true;
-      allow create, update, delete: if false; // Managed by backend/admins only
+      allow read: if true;
+      allow write: if false; // Managed by backend/admins only
     }
 
     /**
@@ -151,8 +151,7 @@ service cloud.firestore {
      * @principle Enforces maximum security on sensitive data by denying all client access.
      */
     match /subscriptions/{subscriptionId} {
-      allow get, list: if false;
-      allow create, update, delete: if false; // Managed by backend/admins only
+      allow read, write: if false; // Managed by backend/admins only
     }
 
     /**
@@ -164,8 +163,8 @@ service cloud.firestore {
      * @principle Protects master data by making it read-only for clients.
      */
     match /skills/{skillId} {
-      allow get, list: if true;
-      allow create, update, delete: if false; // Managed by backend/admins only
+      allow read: if true;
+      allow write: if false; // Managed by backend/admins only
     }
     
     /**
@@ -177,7 +176,7 @@ service cloud.firestore {
      * @principle Implements a "Public Read, Owner Write" model based on the 'raterId' field.
      */
     match /ratings/{ratingId} {
-      allow get, list: if true;
+      allow read: if true;
       allow create: if isSignedIn() && hasValidNewRatingFields();
       allow update: if isExistingOwner(request.resource.data.raterId) && hasImmutableRatingFields();
       allow delete: if isExistingOwner(request.resource.data.raterId);
