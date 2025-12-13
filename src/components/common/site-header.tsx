@@ -16,9 +16,16 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+
+type UserProfile = {
+  name: string;
+  avatarUrl: string;
+}
 
 export function SiteHeader() {
   const { user, isUserLoading } = useUser();
+  const [userProfile] = useLocalStorage<UserProfile | null>('userProfile', null);
   const pathname = usePathname();
 
   const navLinks = [
@@ -36,14 +43,17 @@ export function SiteHeader() {
         return <div className="h-10 w-24 rounded-md animate-pulse bg-muted" />;
     }
 
-    if (user) {
+    if (user || userProfile) {
+      const displayName = user?.displayName || userProfile?.name || 'User';
+      const photoURL = user?.photoURL || userProfile?.avatarUrl;
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost">
               <Avatar className="h-8 w-8 mr-2">
-                <AvatarImage src={user.photoURL ?? ''} />
-                <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+                {photoURL && <AvatarImage src={photoURL} />}
+                <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
               <span>My Account</span>
             </Button>
@@ -62,7 +72,6 @@ export function SiteHeader() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {/* The logout functionality is handled on the profile page, but can be moved here */}
             <DropdownMenuItem asChild>
               <Link href="/profile">
                 <span>Log Out</span>
