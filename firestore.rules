@@ -17,6 +17,9 @@
  *   ownership-based security rules.
  *
  * @section Key Security Decisions
+ * - **Public College & Skill Data**: The `/colleges` and `/skills` collections are publicly readable
+ *   to allow features like the college dropdown on the signup page to function for unauthenticated
+ *   users. Writes are forbidden for clients.
  * - **Admin-Managed Data**: Direct client-side writes to /colleges, /subscriptions, and /skills
  *   are explicitly forbidden to prevent unauthorized modification of core platform data.
  * - **Strict Student Scoping**: A user's access is strictly confined to their own document tree
@@ -134,13 +137,13 @@ service cloud.firestore {
      * @description Defines rules for the 'colleges' collection.
      * This collection is public-readable but centrally managed.
      * @path /colleges/{collegeId}
-     * @allow (get, list) Any user, signed in or not, can read a college's details.
-     * @deny (create) A regular user cannot create a new college document. This is an admin task.
+     * @allow (read) Any user, signed in or not, can read college details.
+     * @deny (write) A regular user cannot create or modify a college document.
      * @principle Protects master data by making it read-only for clients.
      */
     match /colleges/{collegeId} {
       allow read: if true;
-      allow write: if false; // Managed by backend/admins only
+      allow write: if false;
 
       /**
        * @description Defines rules for the 'students' subcollection.
@@ -167,7 +170,7 @@ service cloud.firestore {
          * @principle Enforces strict document ownership within a user's data tree.
          */
         match /serviceRequests/{serviceRequestId} {
-          allow get, list: if isOwner(studentId);
+          allow read, list: if isOwner(studentId);
           allow create: if isOwner(studentId) && hasValidNewOwnerLink(studentId);
           allow update: if isExistingOwner(studentId) && hasImmutableOwnerLink();
           allow delete: if isExistingOwner(studentId);
@@ -182,7 +185,7 @@ service cloud.firestore {
          * @principle Enforces strict document ownership within a user's data tree.
          */
         match /serviceProviderListings/{serviceProviderListingId} {
-          allow get, list: if isOwner(studentId);
+          allow read, list: if isOwner(studentId);
           allow create: if isOwner(studentId) && hasValidNewOwnerLink(studentId);
           allow update: if isExistingOwner(studentId) && hasImmutableOwnerLink();
           allow delete: if isExistingOwner(studentId);
@@ -227,9 +230,7 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isSignedIn() && hasValidNewRatingFields();
       allow update: if isExistingOwner(request.resource.data.raterId) && hasImmutableRatingFields();
-      allow delete: if isExistingOwner(request.resource.data.raterId);
+      allow delete: if isExistingOwner(resource.data.raterId);
     }
   }
 }
-
-    
