@@ -79,17 +79,22 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
             title: "Signed In with Google",
             description: `Welcome, ${user.displayName}!`
         });
-        
-        // Prepare signup data and redirect to profile creation for all Google sign-ins
+
+        // For Google Sign-In, we save the essential info needed for the profile creation page.
+        // The dashboard layout will handle the redirection logic.
         const googleSignupData = {
             email: user.email,
             name: user.displayName,
             uid: user.uid,
             username: generateUsernameFromEmail(user.email),
-            accountType: 'seeker' // Default for new sign-ups, user can be a provider too
+            // The account type is not determined here. We can default it or let user choose.
+            // Let's keep it simple and default to seeker, user can become a provider via their profile.
+            accountType: 'seeker' 
         };
         localStorage.setItem('signupData', JSON.stringify(googleSignupData));
-        router.push("/profile/create");
+        
+        // Redirect to dashboard, which will then check for profile and redirect if necessary.
+        router.push("/dashboard");
 
     } catch (error) {
         console.error("Google sign-in error", error);
@@ -127,22 +132,14 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
         });
         router.push("/profile/create");
       } else { // Login mode
-        // For login, we'll check if a profile exists in local storage
+        // For login, we'll just simulate a successful login and redirect.
+        // The dashboard layout will handle checking if the profile exists.
          try {
-            const storedProfile = localStorage.getItem('userProfile');
-            if (storedProfile && Object.keys(JSON.parse(storedProfile)).length > 0) {
-                 toast({
-                    title: "Signed In",
-                    description: "Welcome back!"
-                });
-                router.push("/dashboard");
-            } else {
-                 toast({
-                    variant: "destructive",
-                    title: "Login Failed",
-                    description: "No profile found for this user. Please sign up."
-                });
-            }
+            toast({
+                title: "Signed In",
+                description: "Welcome back!"
+            });
+            router.push("/dashboard");
         } catch (e) {
              toast({
                 variant: "destructive",
