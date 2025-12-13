@@ -7,14 +7,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlusCircle, Star, Briefcase, Clock, User, Search } from "lucide-react";
 import Link from "next/link";
-import { serviceRequests, serviceProviders, users, colleges } from "@/lib/data";
+import { serviceRequests, serviceProviders, users } from "@/lib/data";
 import { placeholderImages } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
-import { useState, useMemo } from "react";
-import { Input } from "@/components/ui/input";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
 type UserProfile = {

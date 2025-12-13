@@ -45,6 +45,9 @@ const messages = [
 ]
 
 export default function MessagesPage() {
+  const activeChatUser = conversations[0];
+  const activeChatAvatar = placeholderImages.find(p => p.id === activeChatUser.avatarId);
+
   return (
     <div className="flex flex-col h-screen">
       <SiteHeader />
@@ -95,11 +98,11 @@ export default function MessagesPage() {
             <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
                 <div className="flex items-center space-x-4">
                     <Avatar>
-                        <AvatarImage src={placeholderImages.find(p => p.id === 'avatar-1')?.imageUrl} alt="Mohammed Sufyan Ali" />
-                        <AvatarFallback>MS</AvatarFallback>
+                        {activeChatAvatar && <AvatarImage src={activeChatAvatar.imageUrl} alt={activeChatUser.userName} />}
+                        <AvatarFallback>{activeChatUser.userName.substring(0, 2)}</AvatarFallback>
                     </Avatar>
                     <div>
-                        <p className="text-sm font-medium leading-none">Mohammed Sufyan Ali</p>
+                        <p className="text-sm font-medium leading-none">{activeChatUser.userName}</p>
                         <p className="text-sm text-muted-foreground">Online</p>
                     </div>
                 </div>
@@ -110,8 +113,8 @@ export default function MessagesPage() {
                     <div key={msg.id} className={`flex items-end gap-2 ${msg.isCurrentUser ? 'justify-end' : ''}`}>
                         {!msg.isCurrentUser && (
                             <Avatar className="h-8 w-8">
-                                <AvatarImage src={placeholderImages.find(p => p.id === 'avatar-1')?.imageUrl} />
-                                <AvatarFallback>MS</AvatarFallback>
+                                {activeChatAvatar && <AvatarImage src={activeChatAvatar.imageUrl} />}
+                                <AvatarFallback>{activeChatUser.userName.substring(0, 2)}</AvatarFallback>
                             </Avatar>
                         )}
                         <div className={`rounded-lg px-4 py-2 max-w-[70%] ${msg.isCurrentUser ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
