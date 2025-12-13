@@ -45,25 +45,19 @@
     {
       "id": "avatar-flower-1",
       "description": "Flower avatar 1",
-      "imageUrl": "https://images.unsplash.com/photo-1653162846509-3f99fc17b160?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmbG93ZXIlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjU2MzI2Nzl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "flower portrait"
-    },
-    {
-      "id": "avatar-flower-2",
-      "description": "Flower avatar 2",
       "imageUrl": "https://images.unsplash.com/photo-1549294934-18ff31e6a09a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmbG93ZXIlMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjU2MzI2Nzl8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "flower portrait"
     },
     {
       "id": "avatar-car-1",
       "description": "Car avatar 1",
-      "imageUrl": "https://images.unsplash.com/photo-1707999494553-27506fa302a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2FyJTIwaWxsdXN0cmF0aW9ufGVufDB8fHx8MTc2NTYzMjY3OXww&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1725916631387-9f48fae4296b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjYXIlMjBpbGx1c3RyYXRpb258ZW58MHx8fHwxNzY1NjMyNjc5fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "car illustration"
     },
     {
       "id": "avatar-car-2",
       "description": "Car avatar 2",
-      "imageUrl": "https://images.unsplash.com/photo-1725916631387-9f48fae4296b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjYXIlMjBpbGx1c3RyYXRpb258ZW58MHx8fHwxNzY1NjMyNjc5fDA&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1707999494553-27506fa302a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2FyJTIwaWxsdXN0cmF0aW9ufGVufDB8fHx8MTc2NTYzMjY3OXww&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "car illustration"
     },
     {
@@ -81,19 +75,19 @@
     {
       "id": "avatar-alien-1",
       "description": "Alien avatar 1",
-      "imageUrl": "https://images.unsplash.com/photo-1732780769509-67862ed50b03?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxhbGllbiUyMGNhcnRvb258ZW58MHx8fHwxNzY1NjMzMzc2fDA&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1732780769509-67862ed50b03?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxhbGllbiUyMGNhcnRvb258ZW58MHx8fHwxNzY1NjMzMzc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "alien cartoon"
     },
     {
       "id": "avatar-alien-2",
       "description": "Alien avatar 2",
-      "imageUrl": "https://images.unsplash.com/photo-1701025812558-ca9ca4e24d71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxhbGllbiUyMGNhcnRvb258ZW58MHx8fHwxNzY1NjMzMzc2fDA&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1701025812558-ca9ca4e24d71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxhbGllbiUyMGNhcnRvb258ZW58MHx8fHwxNzY1NjMzMzc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "alien cartoon"
     },
     {
       "id": "avatar-robot-1",
       "description": "Robot avatar 1",
-      "imageUrl": "https://images.unsplash.com/photo-1732811798242-6d31a6164660?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxyb2JvdCUyMGNhcnRvb258ZW58MHx8fHwxNzY1NTMzMzYyfDA&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1732811798242-6d31a6164660?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxyb2JvdCUyMGNhcnRvb258ZW58MHx8fHwxNzY1NTMzMzYyfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "robot cartoon"
     },
     {
@@ -105,25 +99,25 @@
     {
       "id": "avatar-galaxy-1",
       "description": "Galaxy avatar 1",
-      "imageUrl": "https://images.unsplash.com/photo-1711560708511-36b48acad6bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z2FsYXh5JTIwc3BhY2V8ZW58MHx8fHwxNzY1NjEwOTkyfDA&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1711560708511-36b48acad6bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z2FsYXh5JTIwc3BhY2V8ZW58MHx8fHwxNzY1NjEwOTkyfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "galaxy space"
     },
     {
       "id": "avatar-dragon-1",
       "description": "Dragon avatar 1",
-      "imageUrl": "https://images.unsplash.com/photo-1581023701827-b50cbca3cb18?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkcmFnb24lMjBpbGx1c3RyYXRpb258ZW58MHx8fHwxNzY1NjMzMzc2fDA&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1581023701827-b50cbca3cb18?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxkcmFnb24lMjBpbGx1c3RyYXRpb258ZW58MHx8fHwxNzY1NjMzMzc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "dragon illustration"
     },
     {
       "id": "avatar-wizard-1",
       "description": "Wizard avatar 1",
-      "imageUrl": "https://images.unsplash.com/photo-1743951896789-b0dd6318c9d8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d2l6YXJkJTIwY2hhcmFjdGVyfGVufDB8fHx8MTc2NTUzNTUxM3ww&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1743951896789-b0dd6318c9d8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d2l6YXJkJTIwY2hhcmFjdGVyfGVufDB8fHx8MTc2NTUzNTUxM3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "wizard character"
     },
     {
       "id": "avatar-ninja-1",
       "description": "Ninja avatar 1",
-      "imageUrl": "https://images.unsplash.com/photo-1689797714112-652680ad727e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxuaW5qYSUyMGNhcnRvb258ZW58MHx8fHwxNzY1NjMzMzc2fDA&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1689797714112-652680ad727e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxuaW5qYSUyMGNhcnRvb258ZW58MHx8fHwxNzY1NjMzMzc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "ninja cartoon"
     },
     {
@@ -135,7 +129,7 @@
     {
       "id": "service-2",
       "description": "Graphic design service",
-      "imageUrl": "https://images.unsplash.com/photo-1609921212029-bb5a28e60960?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxncmFwaGljJTIwZGVzaWdufGVufDB8fHx8MTc2NTUzNTU1NXww&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1609921212029-bb5a28e60960?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxncmFwaGljJTIwZGVzaWdufGVufDB8fHx8MTc2NTUzNTU1NXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "graphic design"
     },
     {
