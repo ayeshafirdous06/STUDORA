@@ -1,20 +1,65 @@
+
+'use client';
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, BookOpenCheck } from "lucide-react";
+import { Menu, BookOpenCheck, User as UserIcon } from "lucide-react";
+import { useUser } from "@/firebase";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { usePathname } from "next/navigation";
 
 export function SiteHeader() {
+  const { user, isUserLoading } = useUser();
+  const pathname = usePathname();
+
   const navLinks = [
     { href: "/dashboard", label: "Marketplace" },
-    { href: "/#features", label: "Features" },
     { href: "/register/college", label: "For Colleges" },
   ];
+
+  // Hide header on landing/auth pages for a cleaner look
+  if (['/', '/login', '/signup', '/profile/create'].includes(pathname)) {
+    return null;
+  }
+
+  const renderUserNav = () => {
+    if (isUserLoading) {
+        return <div className="h-10 w-24 rounded-md animate-pulse bg-muted" />;
+    }
+
+    if (user) {
+      return (
+        <Button variant="ghost" asChild>
+          <Link href="/profile">
+            <Avatar className="h-8 w-8 mr-2">
+              <AvatarImage src={user.photoURL ?? ''} />
+              <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
+            </Avatar>
+            My Profile
+          </Link>
+        </Button>
+      );
+    }
+
+    return (
+      <>
+        <Button variant="ghost" asChild>
+          <Link href="/login">Log In</Link>
+        </Button>
+        <Button asChild>
+          <Link href="/signup">Sign Up</Link>
+        </Button>
+      </>
+    );
+  };
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
         <div className="mr-4 hidden md:flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
+          <Link href="/dashboard" className="mr-6 flex items-center space-x-2">
             <BookOpenCheck className="h-6 w-6 text-primary" />
             <span className="hidden font-bold sm:inline-block">STUDORA</span>
           </Link>
@@ -41,7 +86,7 @@ export function SiteHeader() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="pr-0">
-                <Link href="/" className="mr-6 flex items-center space-x-2 p-4">
+                <Link href="/dashboard" className="mr-6 flex items-center space-x-2 p-4">
                   <BookOpenCheck className="h-6 w-6 text-primary" />
                   <span className="font-bold">STUDORA</span>
                 </Link>
@@ -61,17 +106,12 @@ export function SiteHeader() {
               </SheetContent>
             </Sheet>
           </div>
-           <Link href="/" className="flex items-center space-x-2 md:hidden">
+           <Link href="/dashboard" className="flex items-center space-x-2 md:hidden">
             <BookOpenCheck className="h-6 w-6 text-primary" />
             <span className="font-bold sm:inline-block">STUDORA</span>
           </Link>
           <nav className="flex items-center">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Log In</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">Sign Up</Link>
-            </Button>
+            {renderUserNav()}
           </nav>
         </div>
       </div>

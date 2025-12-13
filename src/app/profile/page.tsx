@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SiteHeader } from '@/components/common/site-header';
 import { colleges } from '@/lib/data';
-import { Star, Edit, DollarSign, Sparkles, Loader2, Save } from 'lucide-react';
+import { Star, Edit, DollarSign, Sparkles, Loader2, Save, LogOut } from 'lucide-react';
 import { recommendSkillsForProvider } from '@/ai/flows/skill-recommendation-for-providers';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +19,8 @@ import { useLocalStorage } from '@/hooks/use-local-storage';
 import type { ServiceRequestForm } from '@/app/services/new/page';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
 
 type StoredRequest = ServiceRequestForm & { id: string; status: string; };
 
@@ -32,11 +34,13 @@ type UserProfile = {
   rating: number;
   earnings: number;
   accountType: 'provider' | 'seeker';
+  skills?: string[];
 };
 
 export default function ProfilePage() {
     const { toast } = useToast();
     const router = useRouter();
+    const auth = useAuth();
     
     const [currentUser, setCurrentUser] = useLocalStorage<UserProfile | null>('userProfile', null);
     const [isLoading, setIsLoading] = useState(true);
@@ -51,6 +55,14 @@ export default function ProfilePage() {
     const [myRequests, setMyRequests] = useLocalStorage<(StoredRequest & { title: string })[]>('my-requests', []);
 
     const isProvider = currentUser?.accountType === 'provider';
+    
+    useEffect(() => {
+        // Set skills from profile when it loads
+        if (currentUser?.skills) {
+            setSkills(currentUser.skills);
+        }
+    }, [currentUser?.skills])
+
 
     useEffect(() => {
         // We need to check if the userProfile exists and is not an empty object
@@ -60,20 +72,47 @@ export default function ProfilePage() {
             // If no profile from useLocalStorage, wait a bit to see if it loads from async storage,
             // then redirect if it's still missing. This handles race conditions on initial load.
             const timer = setTimeout(() => {
-                const storedProfile = localStorage.getItem('userProfile');
-                if (!storedProfile || Object.keys(JSON.parse(storedProfile)).length === 0) {
-                   // Only stop loading if we've waited and there's still no profile.
-                   // The page will then render the "Profile Not Found" message.
-                   setIsLoading(false); 
+                const storedProfileString = localStorage.getItem('userProfile');
+                if (storedProfileString) {
+                  try {
+                    const storedProfile = JSON.parse(storedProfileString);
+                     if (!storedProfile || Object.keys(storedProfile).length === 0) {
+                       setIsLoading(false);
+                    } else {
+                       setCurrentUser(storedProfile);
+                       setIsLoading(false);
+                    }
+                  } catch (e) {
+                     console.error("Failed to parse userProfile from localStorage", e);
+                     setIsLoading(false);
+                  }
                 } else {
-                   // If it loaded in the meantime, update our state
-                   setCurrentUser(JSON.parse(storedProfile));
-                   setIsLoading(false);
+                    setIsLoading(false);
                 }
             }, 1000);
             return () => clearTimeout(timer);
         }
     }, [currentUser, router, setCurrentUser]);
+    
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            localStorage.removeItem('userProfile');
+            toast({
+                title: 'Signed Out',
+                description: 'You have been successfully signed out.',
+            });
+            router.push('/');
+        } catch (error) {
+            console.error("Error signing out:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Sign Out Failed',
+                description: 'There was an issue signing you out. Please try again.',
+            });
+        }
+    };
+
 
     const handleGetRecommendations = async () => {
         if (!profileSummary) {
@@ -112,7 +151,9 @@ export default function ProfilePage() {
     };
 
     const handleSaveChanges = () => {
-        // In a real app, this would save the profileSummary and skills to the database
+        if (currentUser) {
+            setCurrentUser({ ...currentUser, skills: skills });
+        }
         setIsEditing(false);
         toast({
             title: "Profile Saved!",
@@ -156,12 +197,13 @@ export default function ProfilePage() {
             <>
                 <SiteHeader />
                 <div className="container py-8 text-center">
-                    <Card>
+                     <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"></div>
+                    <Card className="max-w-md mx-auto">
                         <CardHeader>
                             <CardTitle>Profile Not Found</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p>Could not load user profile. Please try signing in again.</p>
+                            <p>Could not load user profile. Please sign in to view your profile.</p>
                             <Button onClick={() => router.push('/login')} className="mt-4">Go to Login</Button>
                         </CardContent>
                     </Card>
@@ -201,17 +243,23 @@ export default function ProfilePage() {
                                 </div>
                             )}
                         </div>
-                        {isEditing ? (
-                             <Button onClick={handleSaveChanges}>
-                                <Save className="mr-2 h-4 w-4" />
-                                Save Changes
+                        <div className="flex flex-col gap-2">
+                            {isEditing ? (
+                                 <Button onClick={handleSaveChanges}>
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Save Changes
+                                </Button>
+                            ) : (
+                                <Button variant="outline" onClick={() => setIsEditing(true)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit Profile
+                                </Button>
+                            )}
+                             <Button variant="ghost" onClick={handleLogout}>
+                                <LogOut className="mr-2 h-4 w-4" />
+                                Log Out
                             </Button>
-                        ) : (
-                            <Button variant="outline" onClick={() => setIsEditing(true)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit Profile
-                            </Button>
-                        )}
+                        </div>
                     </CardContent>
                 </Card>
 
