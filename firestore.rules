@@ -157,7 +157,7 @@ service cloud.firestore {
       match /students/{studentId} {
         allow get: if isOwner(studentId);
         allow list: if false; // Prevent students from listing other students in their college
-        allow create: if isOwner(studentId) && isCollegeApprovedAndActive(collegeId) && hasValidNewStudentFields(studentId, collegeId);
+        allow create: if isOwner(studentId) && hasValidNewStudentFields(studentId, collegeId);
         allow update: if isExistingOwner(studentId) && hasImmutableStudentFields();
         allow delete: if isExistingOwner(studentId);
       
@@ -234,3 +234,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
