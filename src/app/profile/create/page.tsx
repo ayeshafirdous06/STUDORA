@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -33,6 +33,7 @@ export default function CreateProfilePage() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userProfile, setUserProfile] = useLocalStorage('userProfile', {});
+  const [signupData, setSignupData] = useState<any>(null);
 
   const {
     register,
@@ -42,7 +43,24 @@ export default function CreateProfilePage() {
     formState: { errors },
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
+    defaultValues: {
+      name: '',
+      username: '',
+    }
   });
+  
+  useEffect(() => {
+    try {
+      const data = JSON.parse(localStorage.getItem('signupData') || '{}');
+      setSignupData(data);
+      if (data.name) {
+        setValue('name', data.name);
+      }
+    } catch (e) {
+      console.error("Could not parse signup data from local storage");
+    }
+  }, [setValue]);
+
 
   const selectedAvatar = watch('avatarUrl');
 
@@ -54,8 +72,13 @@ export default function CreateProfilePage() {
         try {
             // In a real app, this would save to a database.
             // We'll use local storage to persist the user's created profile data.
-            const signupData = JSON.parse(localStorage.getItem('signupData') || '{}');
-            const fullProfile = { ...signupData, ...data, id: 'user-1', rating: 4.8, earnings: 1250.00 }; // Combine and add mock data
+            const fullProfile = { 
+              ...signupData, 
+              ...data, 
+              id: signupData?.uid || 'user-1', 
+              rating: 4.8, 
+              earnings: 1250.00 
+            }; 
             setUserProfile(fullProfile);
 
             localStorage.removeItem('signupData'); // Clean up
