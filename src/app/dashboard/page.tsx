@@ -30,22 +30,10 @@ type UserProfile = {
 
 
 export default function DashboardPage() {
-    const [collegeSearch, setCollegeSearch] = useState('');
     const [currentUser] = useLocalStorage<UserProfile | null>('userProfile', null);
 
     const isProvider = currentUser?.accountType === 'provider';
 
-    const filteredProviders = useMemo(() => {
-        return serviceProviders.filter(provider => {
-            if (!collegeSearch) return true;
-            const student = users.find(u => u.id === provider.studentId);
-            if (!student) return false;
-            const college = colleges.find(c => c.id === student.collegeId);
-            if (!college) return false;
-            return college.name.toLowerCase().includes(collegeSearch.toLowerCase());
-        });
-    }, [collegeSearch]);
-    
     const defaultTab = isProvider ? "requests" : "providers";
 
     return (
@@ -78,17 +66,6 @@ export default function DashboardPage() {
                     ) : (
                          <h2 className="text-2xl font-semibold">Find a Provider</h2>
                     )}
-                    <div className="w-full md:w-auto">
-                        <div className="relative">
-                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                             <Input 
-                                 placeholder="Search by college name..."
-                                 className="pl-9 w-full md:w-[300px]"
-                                 value={collegeSearch}
-                                 onChange={(e) => setCollegeSearch(e.target.value)}
-                             />
-                        </div>
-                    </div>
                 </div>
                 
                 {isProvider && (
@@ -143,7 +120,7 @@ export default function DashboardPage() {
 
                 <TabsContent value="providers">
                      <div className="grid gap-6 mt-6 md:grid-cols-2 lg:grid-cols-3">
-                        {filteredProviders.map(provider => {
+                        {serviceProviders.map(provider => {
                              const student = users.find(u => u.id === provider.studentId);
                              const avatar = placeholderImages.find(p => p.id === student?.avatarId);
                              if (!student) return null;

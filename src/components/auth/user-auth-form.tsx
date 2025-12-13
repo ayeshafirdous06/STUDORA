@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -64,6 +63,11 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     defaultValues: mode === 'signup' ? { accountType } : {},
   });
 
+  const generateUsernameFromEmail = (email: string | null): string => {
+    if (!email) return '';
+    return email.split('@')[0].replace(/[^a-z0-9_.]/g, '').toLowerCase();
+  };
+
   async function handleGoogleSignIn() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
@@ -87,6 +91,7 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
                 email: user.email,
                 name: user.displayName,
                 uid: user.uid,
+                username: generateUsernameFromEmail(user.email),
                 accountType: 'seeker' // Default, could be refined
             };
             localStorage.setItem('signupData', JSON.stringify(googleSignupData));
@@ -115,7 +120,11 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
       if (mode === 'signup') {
         // Store signup data temporarily to pass to the next step
         try {
-            localStorage.setItem('signupData', JSON.stringify(data));
+            const signupPayload = {
+              ...data,
+              username: generateUsernameFromEmail(data.email),
+            };
+            localStorage.setItem('signupData', JSON.stringify(signupPayload));
         } catch (e) {
             console.error("Local storage is unavailable.");
         }
@@ -252,5 +261,3 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     </div>
   );
 }
-
-    

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -55,6 +56,9 @@ export default function CreateProfilePage() {
       setSignupData(data);
       if (data.name) {
         setValue('name', data.name);
+      }
+      if (data.username) {
+        setValue('username', data.username);
       }
     } catch (e) {
       console.error("Could not parse signup data from local storage");
@@ -157,5 +161,3 @@ export default function CreateProfilePage() {
     </div>
   );
 }
-
-    
