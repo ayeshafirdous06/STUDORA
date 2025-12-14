@@ -20,8 +20,9 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { colleges } from "@/lib/data";
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, FirebaseError } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, FirebaseError, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 import { useAuth } from '@/firebase';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -50,7 +51,11 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [isGoogleLoading, setIsGoogleLoading] = React.useState<boolean>(false);
   const auth = useAuth();
-
+  
+  const [phone, setPhone] = React.useState('');
+  const [otp, setOtp] = React.useState('');
+  const [confirmationResult, setConfirmationResult] = React.useState<ConfirmationResult | null>(null);
+  const [phoneAuthStep, setPhoneAuthStep] = React.useState<'enter-phone' | 'enter-otp'>('enter-phone');
 
   const approvedColleges = colleges.filter(c => c.approvalStatus);
 
@@ -60,6 +65,59 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     resolver: zodResolver(schema),
     defaultValues: mode === 'signup' ? { accountType } : {},
   });
+  
+  const setupRecaptcha = () => {
+    if (!auth) return;
+    if (!(window as any).recaptchaVerifier) {
+      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response: any) => {
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
+        },
+      });
+    }
+  };
+
+
+  const handleSendOtp = async () => {
+    setIsLoading(true);
+    try {
+      setupRecaptcha();
+      const appVerifier = (window as any).recaptchaVerifier;
+      const result = await signInWithPhoneNumber(auth, `+${phone}`, appVerifier);
+      setConfirmationResult(result);
+      setPhoneAuthStep('enter-otp');
+      toast({ title: 'OTP Sent!', description: 'An OTP has been sent to your phone number.' });
+    } catch (error) {
+      console.error("Phone sign-in error", error);
+       toast({
+          variant: "destructive",
+          title: "Phone Sign-In Failed",
+          description: "Could not send OTP. Please check the number and try again.",
+      });
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!confirmationResult) return;
+    setIsLoading(true);
+    try {
+      await confirmationResult.confirm(otp);
+      router.push("/dashboard");
+    } catch (error) {
+       console.error("OTP verification error", error);
+       toast({
+          variant: "destructive",
+          title: "Verification Failed",
+          description: "The OTP is incorrect. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
 
   const generateUsernameFromEmail = (email: string | null): string => {
     if (!email) return '';
@@ -71,7 +129,6 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     const provider = new GoogleAuthProvider();
     try {
         await signInWithPopup(auth, provider);
-        // The dashboard layout will now handle redirection logic.
         router.push("/dashboard");
     } catch (error) {
         console.error("Google sign-in error", error);
@@ -95,7 +152,6 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            // Store temporary data for the profile creation page
             const signupPayload = {
               email: user.email,
               name: user.displayName || '',
@@ -107,7 +163,6 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
             };
             localStorage.setItem('signupData', JSON.stringify(signupPayload));
 
-            // Redirect to create profile page, which will then redirect to dashboard if profile exists
             router.push("/profile/create");
         } catch (error) {
             const firebaseError = error as FirebaseError;
@@ -130,7 +185,6 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
         const { email, password } = data as LoginFormData;
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            // The dashboard layout will now handle redirection logic.
             router.push("/dashboard");
         } catch (error) {
              const firebaseError = error as FirebaseError;
@@ -153,77 +207,135 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
 
   return (
     <div className={cn("grid gap-6 bg-card p-8 rounded-lg border", className)} {...props}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              placeholder="name@example.com"
-              type="email"
-              autoCapitalize="none"
-              autoComplete="email"
-              autoCorrect="off"
-              disabled={isLoading || isGoogleLoading}
-              {...form.register("email")}
-            />
-            {form.formState.errors.email && (
-              <p className="text-sm text-destructive">
-                {String(form.formState.errors.email?.message)}
-              </p>
-            )}
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              disabled={isLoading || isGoogleLoading}
-              {...form.register("password")}
-            />
-            {form.formState.errors.password && (
-              <p className="text-sm text-destructive">
-                {String(form.formState.errors.password?.message)}
-              </p>
-            )}
-          </div>
-          {mode === "signup" && (
-            <>
-              <input type="hidden" {...form.register("accountType")} />
-              <div className="grid gap-2">
-                <Label htmlFor="college">College</Label>
-                <Select onValueChange={(value) => form.setValue('collegeId', value, { shouldValidate: true })} disabled={isLoading || isGoogleLoading}>
-                  <SelectTrigger id="college">
-                    <SelectValue placeholder={"Select your college"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {approvedColleges.length > 0 ? (
-                      approvedColleges.map((college) => (
-                        <SelectItem key={college.id} value={college.id}>
-                          {college.name}
-                        </SelectItem>
-                      ))
-                    ) : (
-                        <SelectItem value="no-colleges" disabled>No approved colleges available.</SelectItem>
+      <Tabs defaultValue="email" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="email">Email</TabsTrigger>
+            <TabsTrigger value="phone">Phone</TabsTrigger>
+        </TabsList>
+        <TabsContent value="email">
+             <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4">
+                <div className="grid gap-4">
+                <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                    id="email"
+                    placeholder="name@example.com"
+                    type="email"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    autoCorrect="off"
+                    disabled={isLoading || isGoogleLoading}
+                    {...form.register("email")}
+                    />
+                    {form.formState.errors.email && (
+                    <p className="text-sm text-destructive">
+                        {String(form.formState.errors.email?.message)}
+                    </p>
                     )}
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.collegeId && (
-                  <p className="text-sm text-destructive">
-                    {String(form.formState.errors.collegeId?.message)}
-                  </p>
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                    id="password"
+                    type="password"
+                    disabled={isLoading || isGoogleLoading}
+                    {...form.register("password")}
+                    />
+                    {form.formState.errors.password && (
+                    <p className="text-sm text-destructive">
+                        {String(form.formState.errors.password?.message)}
+                    </p>
+                    )}
+                </div>
+                {mode === "signup" && (
+                    <>
+                    <input type="hidden" {...form.register("accountType")} />
+                    <div className="grid gap-2">
+                        <Label htmlFor="college">College</Label>
+                        <Select onValueChange={(value) => form.setValue('collegeId', value, { shouldValidate: true })} disabled={isLoading || isGoogleLoading}>
+                        <SelectTrigger id="college">
+                            <SelectValue placeholder={"Select your college"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {approvedColleges.length > 0 ? (
+                            approvedColleges.map((college) => (
+                                <SelectItem key={college.id} value={college.id}>
+                                {college.name}
+                                </SelectItem>
+                            ))
+                            ) : (
+                                <SelectItem value="no-colleges" disabled>No approved colleges available.</SelectItem>
+                            )}
+                        </SelectContent>
+                        </Select>
+                        {form.formState.errors.collegeId && (
+                        <p className="text-sm text-destructive">
+                            {String(form.formState.errors.collegeId?.message)}
+                        </p>
+                        )}
+                    </div>
+                    </>
                 )}
-              </div>
-            </>
-          )}
-          <Button disabled={isLoading || isGoogleLoading} className="mt-2">
-            {isLoading && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            {mode === "login" ? "Sign In" : "Create Account"}
-          </Button>
-        </div>
-      </form>
+                <Button disabled={isLoading || isGoogleLoading} className="mt-2">
+                    {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    {mode === "login" ? "Sign In" : "Create Account"}
+                </Button>
+                </div>
+            </form>
+        </TabsContent>
+        <TabsContent value="phone">
+            <div className="grid gap-4 mt-4">
+                {phoneAuthStep === 'enter-phone' ? (
+                     <div className="grid gap-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <div className="flex gap-2">
+                           <Input
+                              id="phone-prefix"
+                              value="+91"
+                              disabled
+                              className="w-16"
+                            />
+                            <Input
+                                id="phone"
+                                placeholder="9876543210"
+                                type="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(`91${e.target.value}`)}
+                                disabled={isLoading}
+                            />
+                        </div>
+                        <Button onClick={handleSendOtp} disabled={isLoading || !phone}>
+                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                             Send OTP
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="grid gap-2">
+                        <Label htmlFor="otp">Enter OTP</Label>
+                        <Input
+                            id="otp"
+                            placeholder="123456"
+                            type="text"
+                             value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
+                            disabled={isLoading}
+                        />
+                         <Button onClick={handleVerifyOtp} disabled={isLoading || !otp}>
+                            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Verify OTP & {mode === 'login' ? 'Log In' : 'Sign Up'}
+                        </Button>
+                        <Button variant="link" size="sm" onClick={() => setPhoneAuthStep('enter-phone')} className="text-muted-foreground">
+                            Back to phone number entry
+                        </Button>
+                    </div>
+                )}
+            </div>
+        </TabsContent>
+      </Tabs>
+
+
        <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
@@ -247,6 +359,7 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
         )}
         Google
       </Button>
+      <div id="recaptcha-container"></div>
     </div>
   );
 }
