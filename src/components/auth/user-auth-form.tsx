@@ -70,13 +70,8 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     resolver: zodResolver(schema),
     defaultValues: mode === 'signup' ? { accountType } : {},
   });
-
-  const generateUsernameFromEmail = (email: string | null): string => {
-    if (!email) return '';
-    return email.split('@')[0].replace(/[^a-z0-9_.]/g, '').toLowerCase();
-  };
   
-  const handleSuccessfulLogin = async (user: User) => {
+  const handleSuccessfulLogin = React.useCallback(async (user: User) => {
     if (!firestore) {
         toast({ variant: "destructive", title: "Database Error", description: "Could not connect to database." });
         setIsLoading(false);
@@ -94,6 +89,12 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
         uid: user.uid,
         accountType: accountType,
       };
+
+      const generateUsernameFromEmail = (email: string | null): string => {
+        if (!email) return '';
+        return email.split('@')[0].replace(/[^a-z0-9_.]/g, '').toLowerCase();
+      };
+
       if (user.email) signupPayload.email = user.email;
       if (user.displayName) signupPayload.name = user.displayName;
       if (user.email) signupPayload.username = generateUsernameFromEmail(user.email);
@@ -102,7 +103,7 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
       localStorage.setItem('signupData', JSON.stringify(signupPayload));
       router.push("/profile/create");
     }
-  };
+  }, [firestore, router, toast, accountType]);
 
 
   React.useEffect(() => {
@@ -111,10 +112,10 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     // Set up reCAPTCHA verifier for phone auth
     const setupRecaptcha = () => {
         // cleanup existing verifier if any
-        if (window.recaptchaVerifier) {
-            window.recaptchaVerifier.clear();
+        if ((window as any).recaptchaVerifier) {
+            (window as any).recaptchaVerifier.clear();
         }
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
           'size': 'invisible',
           'callback': () => {
             // reCAPTCHA solved
@@ -161,6 +162,12 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
+            
+            const generateUsernameFromEmail = (email: string | null): string => {
+              if (!email) return '';
+              return email.split('@')[0].replace(/[^a-z0-9_.]/g, '').toLowerCase();
+            };
+
             const signupPayload = { email: user.email, name, uid: user.uid, username: generateUsernameFromEmail(user.email), collegeId, accountType };
             localStorage.setItem('signupData', JSON.stringify(signupPayload));
             router.push("/profile/create");
@@ -186,10 +193,10 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
   }
 
   async function handleSendOtp() {
-    if (!auth || !window.recaptchaVerifier) return;
+    if (!auth || !(window as any).recaptchaVerifier) return;
     setIsPhoneLoading(true);
     try {
-      const appVerifier = window.recaptchaVerifier;
+      const appVerifier = (window as any).recaptchaVerifier;
       const result = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
       setConfirmationResult(result);
       setPhoneStep('verify');
