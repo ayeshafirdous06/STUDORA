@@ -54,7 +54,6 @@ export default function DashboardLayout({
           if (userDocSnap.exists()) {
             const profileFromDb = userDocSnap.data();
             setUserProfile(profileFromDb as UserProfile);
-            setIsChecking(false);
           } else {
             // No profile exists in the database for this authenticated user.
             // This means they need to create one.
@@ -64,6 +63,8 @@ export default function DashboardLayout({
           console.error("Error fetching user profile:", error);
           // Failsafe: redirect home on error to prevent getting stuck
           router.replace("/"); 
+        } finally {
+            setIsChecking(false);
         }
       }
     };

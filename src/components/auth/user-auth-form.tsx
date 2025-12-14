@@ -132,7 +132,6 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-        // Using signInWithRedirect to avoid popup blockers
         await signInWithRedirect(auth, provider);
         // The page will redirect, and the result is handled by onAuthStateChanged
         // in our main dashboard layout.
