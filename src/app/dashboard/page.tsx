@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Star, Briefcase, Clock, User, Search, CheckCircle2 } from "lucide-react";
+import { PlusCircle, Star, Briefcase, Clock, User, Search, CheckCircle2, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -38,6 +38,7 @@ export default function DashboardPage() {
     const [currentUser] = useLocalStorage<UserProfile | null>('userProfile', null);
     
     const [searchQuery, setSearchQuery] = useState('');
+    const [sentRequests, setSentRequests] = useState<string[]>([]);
 
     const isProvider = currentUser?.accountType === 'provider';
 
@@ -45,6 +46,10 @@ export default function DashboardPage() {
         provider.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         provider.username.toLowerCase().includes(searchQuery.toLowerCase())
     );
+    
+    const handleAddFriend = (providerId: string) => {
+        setSentRequests(prev => [...prev, providerId]);
+    };
 
 
     return (
@@ -81,14 +86,17 @@ export default function DashboardPage() {
                 <div className="grid gap-6 mt-6 md:grid-cols-2 lg:grid-cols-3">
                      {filteredProviders.map(provider => {
                         const providerAvatar = placeholderImages.find(p => p.id === provider.avatarId);
+                        const isOwnProfile = currentUser?.id === provider.id;
+                        const isRequestSent = sentRequests.includes(provider.id);
+
                         return (
                             <Card key={provider.id}>
                                 <CardHeader className="flex flex-col items-center text-center">
-                                     <Avatar className="h-24 w-24 mb-4">
+                                    <CardTitle className="text-2xl mb-2">{provider.name}</CardTitle>
+                                     <Avatar className="h-24 w-24 mb-2">
                                         {providerAvatar && <AvatarImage src={providerAvatar.imageUrl} alt={provider.name} />}
                                         <AvatarFallback className="text-3xl">{provider.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
-                                    <CardTitle className="text-xl">{provider.name}</CardTitle>
                                     <p className="text-sm text-muted-foreground">@{provider.username}</p>
                                 </CardHeader>
                                 <CardContent className="text-center">
@@ -104,8 +112,21 @@ export default function DashboardPage() {
                                         <span className="text-muted-foreground ml-1">({provider.reviews} reviews)</span>
                                     </div>
                                 </CardContent>
-                                <CardFooter>
-                                    <Button className="w-full">View Profile</Button>
+                                <CardFooter className="flex flex-col gap-2">
+                                    <Button className="w-full" asChild>
+                                        <Link href="#">View Profile</Link>
+                                    </Button>
+                                    {!isOwnProfile && (
+                                        <Button 
+                                            variant="secondary" 
+                                            className="w-full" 
+                                            onClick={() => handleAddFriend(provider.id)}
+                                            disabled={isRequestSent}
+                                        >
+                                            <UserPlus className="mr-2 h-4 w-4" />
+                                            {isRequestSent ? 'Request Sent' : 'Add Friend'}
+                                        </Button>
+                                    )}
                                 </CardFooter>
                             </Card>
                         )
