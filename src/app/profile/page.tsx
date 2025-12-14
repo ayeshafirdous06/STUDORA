@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SiteHeader } from '@/components/common/site-header';
 import { colleges } from '@/lib/data';
-import { Star, Edit, DollarSign, Sparkles, Loader2, Save, LogOut, Cake, UserCircle, Tag } from 'lucide-react';
+import { Star, Edit, DollarSign, Sparkles, Loader2, Save, LogOut, Cake, UserCircle, Upload } from 'lucide-react';
 import { recommendSkillsForProvider } from '@/ai/flows/skill-recommendation-for-providers';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
@@ -58,12 +58,16 @@ export default function ProfilePage() {
     const [myRequests, setMyRequests] = useLocalStorage<(StoredRequest & { title: string })[]>('my-requests', []);
     const [isLoading, setIsLoading] = useState(true);
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+
     const isProvider = currentUser?.accountType === 'provider';
     
     useEffect(() => {
         if (currentUser) {
             setSkills(currentUser.skills || []);
             setProfileSummary(currentUser.tagline || profileSummary);
+            setPreviewImage(currentUser.avatarUrl);
             setIsLoading(false);
         } else {
              // If no profile in local storage, maybe they haven't created one
@@ -133,10 +137,28 @@ export default function ProfilePage() {
             setIsAiLoading(false);
         }
     };
+    
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const dataUrl = reader.result as string;
+                setPreviewImage(dataUrl);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
 
     const handleSaveChanges = () => {
         if (currentUser) {
-            setCurrentUser({ ...currentUser, skills: skills, tagline: profileSummary });
+            setCurrentUser({ 
+                ...currentUser, 
+                skills: skills, 
+                tagline: profileSummary,
+                avatarUrl: previewImage || currentUser.avatarUrl,
+            });
         }
         setIsEditing(false);
         toast({
@@ -204,10 +226,27 @@ export default function ProfilePage() {
                 <BackButton />
                 <Card className="mb-8">
                     <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
-                        <Avatar className="h-24 w-24 md:h-32 md:w-32 border">
-                            {currentUser.avatarUrl && <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />}
-                            <AvatarFallback className="text-4xl">{currentUser.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                            <Avatar className="h-24 w-24 md:h-32 md:w-32 border">
+                                {previewImage && <AvatarImage src={previewImage} alt={currentUser.name} />}
+                                <AvatarFallback className="text-4xl">{currentUser.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                             {isEditing && (
+                                <div className="absolute bottom-0 right-0">
+                                    <Button size="icon" className="h-8 w-8 rounded-full" onClick={() => fileInputRef.current?.click()}>
+                                        <Upload className="h-4 w-4"/>
+                                        <span className="sr-only">Upload photo</span>
+                                    </Button>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleImageUpload}
+                                        className="hidden"
+                                        accept="image/png, image/jpeg, image/gif"
+                                    />
+                                </div>
+                            )}
+                        </div>
                         <div className="flex-1 text-center md:text-left">
                             <h1 className="text-3xl font-bold font-headline">{currentUser.name}</h1>
                             <p className="text-muted-foreground">@{currentUser.username} &middot; Student at {userCollege?.name || 'their college'}</p>
