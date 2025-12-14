@@ -25,20 +25,16 @@ export default function DashboardLayout({
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    // Wait until Firebase has finished its initial user loading.
     if (isUserLoading) {
       return; 
     }
 
-    // If there's no user after loading, they are not logged in.
     if (!user) {
       router.replace("/");
       return;
     }
 
-    // At this point, the user is authenticated. Now check for their profile.
     const checkForProfile = async () => {
-      // Check if profile exists in local storage first for speed
       const localProfile = localStorage.getItem('userProfile');
       if (localProfile) {
         const parsedProfile = JSON.parse(localProfile);
@@ -48,11 +44,10 @@ export default function DashboardLayout({
         }
       }
 
-      // If not in local storage or mismatched, fetch from Firestore.
       try {
         if (!firestore) {
           console.error("Firestore not available");
-          setAuthChecked(true); // Stop loading to show some UI, but this is an error state
+          setAuthChecked(true); 
           return;
         }
         const userDocRef = doc(firestore, 'users', user.uid);
@@ -60,15 +55,13 @@ export default function DashboardLayout({
 
         if (userDocSnap.exists()) {
           const profileData = { id: user.uid, ...userDocSnap.data() } as UserProfile;
-          localStorage.setItem('userProfile', JSON.stringify(profileData)); // Cache for next time.
+          localStorage.setItem('userProfile', JSON.stringify(profileData));
         } else {
-          // This is a new user, redirect to create their profile.
           router.replace('/profile/create');
-          return; // Return here to prevent setting authChecked to true on this render
+          return;
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
-        // Optionally, redirect to an error page.
       } finally {
         setAuthChecked(true);
       }
@@ -78,7 +71,6 @@ export default function DashboardLayout({
 
   }, [user, isUserLoading, router, firestore]);
 
-  // Show a loading screen until all authentication and profile checks are complete.
   if (!authChecked || isUserLoading) {
     return (
       <div className="relative flex min-h-screen flex-col">
@@ -107,5 +99,3 @@ export default function DashboardLayout({
     </div>
   );
 }
-
-    

@@ -20,9 +20,9 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { colleges } from "@/lib/data";
-import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, createUserWithEmailAndPassword, signInWithEmailAndPassword, FirebaseError, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult, User } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, FirebaseError, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult, User } from 'firebase/auth';
 import { useAuth, useFirestore } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -76,7 +76,7 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     return email.split('@')[0].replace(/[^a-z0-9_.]/g, '').toLowerCase();
   };
   
-  const handleSuccessfulLogin = React.useCallback(async (user: User) => {
+  const handleSuccessfulLogin = async (user: User) => {
     if (!firestore) {
         toast({ variant: "destructive", title: "Database Error", description: "Could not connect to database." });
         setIsLoading(false);
@@ -102,11 +102,11 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
       localStorage.setItem('signupData', JSON.stringify(signupPayload));
       router.push("/profile/create");
     }
-  }, [firestore, router, accountType, toast]);
+  };
 
 
   React.useEffect(() => {
-    if (!auth) return;
+    if (!auth || authMethod !== 'phone') return;
     
     // Set up reCAPTCHA verifier for phone auth
     const setupRecaptcha = () => {
@@ -121,35 +121,8 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
           }
         });
     }
-    if (authMethod === 'phone') {
-        setupRecaptcha();
-    }
-    
-    // Handle redirect result from Google sign-in
-    const checkRedirectResult = async () => {
-        setIsGoogleLoading(true);
-        try {
-            const result = await getRedirectResult(auth);
-            if (result && result.user) {
-                toast({ title: "Signed In!", description: "Welcome back." });
-                await handleSuccessfulLogin(result.user);
-            }
-        } catch (error) {
-            const firebaseError = error as FirebaseError;
-            console.error("Google sign-in redirect error", firebaseError);
-            let description = "Could not sign in with Google. Please try again.";
-            if (firebaseError.code === 'auth/account-exists-with-different-credential') {
-                description = "An account already exists with this email address. Please sign in with your original method.";
-            }
-            toast({ variant: "destructive", title: "Google Sign-In Failed", description });
-        } finally {
-            setIsGoogleLoading(false);
-        }
-    };
-    
-    checkRedirectResult();
-
-  }, [auth, handleSuccessfulLogin, toast, authMethod]);
+    setupRecaptcha();
+  }, [auth, authMethod]);
 
   async function handleGoogleSignIn() {
     if (!auth) {
@@ -158,7 +131,22 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     }
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
+    try {
+        const result = await signInWithPopup(auth, provider);
+        await handleSuccessfulLogin(result.user);
+    } catch (error) {
+        const firebaseError = error as FirebaseError;
+        console.error("Google sign-in error", firebaseError);
+        let description = "Could not sign in with Google. Please try again.";
+        if (firebaseError.code === 'auth/account-exists-with-different-credential') {
+            description = "An account already exists with this email address. Please sign in with your original method.";
+        } else if (firebaseError.code === 'auth/popup-closed-by-user') {
+            description = "Sign-in cancelled. Please try again.";
+        }
+        toast({ variant: "destructive", title: "Google Sign-In Failed", description });
+    } finally {
+        setIsGoogleLoading(false);
+    }
   }
 
   async function onSubmit(data: z.infer<typeof schema>) {
