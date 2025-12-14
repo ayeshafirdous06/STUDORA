@@ -10,26 +10,26 @@
  * @Core_Philosophy
  * The security model is primarily user-centric, enforcing strict ownership for all
  * user profiles. A user has full control over their own profile document. Publicly
- * readable data, such as service requests and provider profiles, can be listed by
- * any authenticated user but only created or modified by the owner.
+ * readable data, such as service requests, can be listed by any authenticated user
+ * but only created or modified by the owner.
  *
  * @Data_Structure
  * - /users/{userId}: A top-level collection for user profiles. Each user owns their document.
  * - /serviceRequests/{serviceRequestId}: A top-level collection for service requests,
- *   allowing for easy public browsing. Ownership is maintained via a `userId` field.
+ *   allowing for easy public browsing. Ownership is maintained via a `studentId` field.
  * - /colleges/{collegeId}: Read-only public data for signed-in users.
  * - /ratings/{ratingId}, /payments/{paymentId}: Top-level collections for future features.
  *
  * @Key_Security_Decisions
  * - Default Deny: All paths are closed by default. Access is granted explicitly.
- * - User Profile Security: Users can only create a profile for themselves (`create`) and
- *   can only modify their own profile (`update`). Reading other user profiles is public for all
- *   authenticated users to allow for browsing providers. Listing all users is allowed for signed-in users.
+ * - User Profile Security: Users can only create, read, and update their own profile document.
+ *   `request.auth.uid` must match the document's `userId`. Listing or reading other user
+ *   profiles is strictly disallowed to protect user privacy.
  * - Service Requests: Any authenticated user can list all service requests.
  *   Creation is restricted to the owner, and updates/deletes are owner-only.
  *
  * @Denormalization_for_Authorization
- * This ruleset relies on denormalized owner IDs (e.g., `userId`, `raterId`, `payerId`)
+ * This ruleset relies on denormalized owner IDs (e.g., `studentId`, `raterId`, `payerId`)
  * directly on documents. This strategy avoids slow and costly `get()` or `exists()`
  * calls for authorization, leading to simpler, faster, and more scalable rules.
  */
@@ -89,32 +89,33 @@ service cloud.firestore {
 
     /**
      * isUserProfileUpdateValid
-     * @description On update, ensures key fields like ID, and email
+     * @description On update, ensures key fields like ID, email, and account type
      * cannot be changed, preserving integrity.
      */
     function isUserProfileUpdateValid() {
         let data = request.resource.data;
         return data.id == resource.data.id
-            && data.email == resource.data.email;
+            && data.email == resource.data.email
+            && data.accountType == resource.data.accountType;
     }
 
 
     /**
      * isValidOwnedDocCreation
-     * @description Validates that a new document correctly sets the 'userId'
+     * @description Validates that a new document correctly sets the 'studentId'
      * field to match the authenticated user's UID.
      */
     function isValidOwnedDocCreation() {
-      return isSignedIn() && request.resource.data.userId == request.auth.uid;
+      return isSignedIn() && request.resource.data.studentId == request.auth.uid;
     }
 
     /**
      * isOwnedDocDataImmutable
-     * @description On update, ensures the 'userId' of a document
+     * @description On update, ensures the 'studentId' of a document
      * cannot be changed, preventing re-assignment of ownership.
      */
     function isOwnedDocDataImmutable() {
-      return request.resource.data.userId == resource.data.userId;
+      return request.resource.data.studentId == resource.data.studentId;
     }
 
 
@@ -154,18 +155,16 @@ service cloud.firestore {
     }
 
     /**
-     * @description Secures user profiles. Users own their documents.
+     * @description Secures user profiles. A user can only read and write their OWN document.
      * @path /users/{userId}
+     * @allow (read, update) A user can access their own document.
      * @allow (create) A new user creates their own profile.
-     * @allow (get, list) Any signed-in user can read profiles (to find providers).
-     * @allow (update) A user can update their own profile.
-     * @deny (delete) Users cannot delete their profiles through the client.
+     * @deny (list, delete) Listing all users or deleting profiles is disallowed.
      */
     match /users/{userId} {
+      allow read, update: if isOwner(userId) && isUserProfileUpdateValid();
       allow create: if isNewUserDocValid(userId);
-      allow get, list: if isSignedIn();
-      allow update: if isOwner(userId) && isUserProfileUpdateValid();
-      allow delete: if false;
+      allow delete, list: if false;
     }
 
     /**
@@ -178,9 +177,11 @@ service cloud.firestore {
         // A user can only create a service request for themselves.
         allow create: if isValidOwnedDocCreation();
         // The user who created the request can update or delete it.
-        allow update: if isExistingDocOwner('userId') && isOwnedDocDataImmutable();
-        allow delete: if isExistingDocOwner('userId');
-        // Any authenticated user can list (query) the entire collection.
+        allow update: if isExistingDocOwner('studentId') && isOwnedDocDataImmutable();
+        allow delete: if isExistingDocOwner('studentId');
+        
+        // This rule is on the COLLECTION, not the document.
+        // It allows any signed-in user to query the collection.
         allow list: if isSignedIn();
     }
 
@@ -207,5 +208,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
