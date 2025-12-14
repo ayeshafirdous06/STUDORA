@@ -2,10 +2,9 @@
 'use client';
 
 import { UserAuthForm } from "@/components/auth/user-auth-form";
-import { BookOpenCheck, Briefcase, UserPlus } from "lucide-react";
+import { Briefcase, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from 'next/navigation';
-import { BackButton } from "@/components/common/back-button";
 
 export default function SignupPage() {
   const searchParams = useSearchParams();

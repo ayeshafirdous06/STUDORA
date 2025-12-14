@@ -1,7 +1,6 @@
 import { UserAuthForm } from "@/components/auth/user-auth-form";
 import { BookOpenCheck } from "lucide-react";
 import Link from "next/link";
-import { BackButton } from "@/components/common/back-button";
 
 export default function LoginPage() {
   return (

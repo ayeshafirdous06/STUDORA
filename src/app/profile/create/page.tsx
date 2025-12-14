@@ -14,11 +14,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Sparkles, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { BackButton } from '@/components/common/back-button';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { generateUsernames } from '@/ai/flows/username-generation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -30,8 +28,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { colleges } from '@/lib/data';
 import { Textarea } from '@/components/ui/textarea';
-import { useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
 
@@ -95,7 +92,7 @@ export default function CreateProfilePage() {
     }
   });
 
-  const { register, handleSubmit, setValue, watch, getValues, formState: { errors } } = form;
+  const { handleSubmit, setValue, watch, getValues, formState: { errors } } = form;
   
   useEffect(() => {
     try {
@@ -234,7 +231,7 @@ export default function CreateProfilePage() {
     <>
     <div className="container flex min-h-screen flex-col items-center justify-center py-8">
       <div className="w-full max-w-xl lg:p-8">
-        <Card className="mx-auto bg-transparent border-none shadow-none">
+        <Card className="mx-auto bg-card">
           <CardHeader>
             <CardTitle className="text-2xl font-headline">Create Your {isProvider ? "Provider" : ""} Profile</CardTitle>
             <CardDescription>Just one more step. Let's get your profile ready.</CardDescription>
@@ -265,14 +262,14 @@ export default function CreateProfilePage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" placeholder="e.g., Jane Doe" {...register('name')} disabled={isGoogleSignIn} />
+                  <Input id="name" placeholder="e.g., Jane Doe" {...form.register('name')} disabled={isGoogleSignIn} />
                   {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="username">Username</Label>
                   <div className="flex items-center gap-2">
-                      <Input id="username" placeholder="e.g., jane.doe" {...register('username')} />
+                      <Input id="username" placeholder="e.g., jane.doe" {...form.register('username')} />
                       <Button type="button" variant="ghost" size="icon" onClick={handleGenerateUsernames} disabled={isAiLoading}>
                           {isAiLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5 text-accent" />}
                           <span className="sr-only">Generate Usernames</span>
@@ -284,12 +281,12 @@ export default function CreateProfilePage() {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="age">Age</Label>
-                        <Input id="age" type="number" placeholder="e.g., 21" {...register('age')} />
+                        <Input id="age" type="number" placeholder="e.g., 21" {...form.register('age')} />
                         {errors.age && <p className="text-sm text-destructive">{errors.age.message}</p>}
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="pronouns">Pronouns</Label>
-                        <Input id="pronouns" placeholder="e.g., she/her" {...register('pronouns')} />
+                        <Input id="pronouns" placeholder="e.g., she/her" {...form.register('pronouns')} />
                         {errors.pronouns && <p className="text-sm text-destructive">{errors.pronouns.message}</p>}
                     </div>
                 </div>
@@ -383,7 +380,7 @@ export default function CreateProfilePage() {
                     <Input
                       id="tagline"
                       placeholder="e.g., Full-Stack Developer & CS Tutor"
-                      {...register('tagline')}
+                      {...form.register('tagline')}
                     />
                   </div>
                   <div className="space-y-2">
@@ -391,7 +388,7 @@ export default function CreateProfilePage() {
                     <Textarea
                       id="skills"
                       placeholder="e.g., Web Design, Tutoring, Video Editing, Baking..."
-                      {...register('skills')}
+                      {...form.register('skills')}
                     />
                     <p className="text-xs text-muted-foreground">
                       List the services you want to offer, separated by commas.
