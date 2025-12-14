@@ -79,9 +79,6 @@ export default function CreateProfilePage() {
   
   const approvedColleges = colleges.filter(c => c.approvalStatus);
 
-  const isProvider = signupData?.accountType === 'provider';
-
-
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -96,14 +93,20 @@ export default function CreateProfilePage() {
   });
 
   const { handleSubmit, setValue, watch, getValues, formState: { errors } } = form;
-  
+  const isProvider = signupData?.accountType === 'provider';
+
   useEffect(() => {
     if (isUserLoading) {
       return; // Wait until user auth state is determined
     }
 
     try {
-      const data = JSON.parse(localStorage.getItem('signupData') || '{}');
+      const dataStr = localStorage.getItem('signupData');
+      if (!dataStr) {
+          if (!user) router.replace('/signup');
+          return;
+      }
+      const data = JSON.parse(dataStr);
       setSignupData(data);
       if (data.name) setValue('name', data.name);
       if (data.username) setValue('username', data.username);
@@ -111,7 +114,6 @@ export default function CreateProfilePage() {
       if (data.isGoogleSignIn) setIsGoogleSignIn(true);
     } catch (e) {
       console.error("Could not parse signup data from local storage");
-      // If there's no signup data and no user, they shouldn't be here
       if (!user) {
         router.replace('/signup');
       }
@@ -175,6 +177,15 @@ export default function CreateProfilePage() {
         return;
     }
 
+    if (!firestore) {
+        toast({
+            variant: 'destructive',
+            title: 'Database Error',
+            description: 'Could not connect to the database. Please try again.',
+        });
+        return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -225,7 +236,7 @@ export default function CreateProfilePage() {
     }
   };
 
-  if (isUserLoading) {
+  if (isUserLoading || !signupData) {
     return (
         <div className="flex h-screen items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -437,3 +448,4 @@ export default function CreateProfilePage() {
     </>
   );
 }
+

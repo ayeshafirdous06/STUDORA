@@ -67,23 +67,26 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     defaultValues: mode === 'signup' ? { accountType } : {},
   });
   
-  const setupRecaptcha = () => {
+  React.useEffect(() => {
     if (!auth) return;
-    if (!(window as any).recaptchaVerifier) {
-      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': (response: any) => {
-          // reCAPTCHA solved, allow signInWithPhoneNumber.
-        },
-      });
-    }
-  };
+    // Delay reCAPTCHA setup to ensure auth is ready
+    const timer = setTimeout(() => {
+        if (!(window as any).recaptchaVerifier) {
+            (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response: any) => {
+                    // reCAPTCHA solved, allow signInWithPhoneNumber.
+                },
+            });
+        }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [auth]);
 
 
   const handleSendOtp = async () => {
     setIsLoading(true);
     try {
-      setupRecaptcha();
       const appVerifier = (window as any).recaptchaVerifier;
       const result = await signInWithPhoneNumber(auth, `+${phone}`, appVerifier);
       setConfirmationResult(result);
