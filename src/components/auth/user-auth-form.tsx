@@ -112,6 +112,7 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
         name: user.displayName || '',
         uid: user.uid,
         isGoogleSignIn: false,
+        isPhoneSignIn: true,
         username: '', // Will be set on profile creation
         collegeId: '', // Will be set on profile creation
         accountType: 'seeker', // Default, can be changed in profile creation
@@ -119,7 +120,7 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
       localStorage.setItem('signupData', JSON.stringify(signupPayload));
 
       // After phone verification, we always assume it's a new user or someone who needs to complete their profile
-      router.push("/profile/create");
+      router.push("/dashboard");
 
     } catch (error) {
        console.error("OTP verification error", error);
