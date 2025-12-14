@@ -133,8 +133,10 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     const provider = new GoogleAuthProvider();
     try {
         await signInWithRedirect(auth, provider);
-        // The page will redirect, and the result is handled by onAuthStateChanged
-        // in our main dashboard layout.
+        // After this, the user is redirected to Google.
+        // After they sign in, they are redirected back to the app.
+        // The onAuthStateChanged listener in FirebaseProvider and the logic
+        // in DashboardLayout will handle the rest.
     } catch (error) {
         console.error("Google sign-in error", error);
         toast({

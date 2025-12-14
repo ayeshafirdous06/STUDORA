@@ -26,37 +26,49 @@ export default function DashboardLayout({
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // Wait until the initial user loading is complete
+    // This effect handles authentication and profile checks.
+    // It will only run to completion after the initial Firebase auth check is done.
+
+    // 1. Wait until Firebase has determined the auth state.
     if (isUserLoading) {
       return; 
     }
 
-    // After loading, if there's no user, they are not logged in.
+    // 2. After loading, if there's no user, they are not logged in. Redirect home.
     if (!user) {
       router.replace("/");
       return;
     }
 
-    // If we reach here, the user is authenticated. Now, check for their profile.
+    // 3. If we reach here, the user is authenticated. Now, check for their profile.
     const checkUserProfile = async () => {
-      // If profile is already in local storage and matches current user, we're good.
+      // If profile is already in local storage and matches the current user, we are good.
       if (userProfile && userProfile.id === user.uid) {
         setIsChecking(false);
         return;
       }
-
-      // If not, try fetching it from Firestore.
+      
+      // If no profile in local storage, or if it doesn't match the current user,
+      // try fetching it from Firestore.
       if (firestore) {
         try {
           const userDocRef = doc(firestore, 'users', user.uid);
           const userDocSnap = await getDoc(userDocRef);
 
           if (userDocSnap.exists()) {
+            // Profile exists in Firestore, save it to local storage for future loads.
             const profileFromDb = userDocSnap.data();
             setUserProfile(profileFromDb as UserProfile);
           } else {
             // No profile exists in the database for this authenticated user.
             // This means they need to create one.
+            const signupPayload = {
+              email: user.email,
+              name: user.displayName || '',
+              uid: user.uid,
+              isGoogleSignIn: user.providerData.some(p => p.providerId === 'google.com'),
+            };
+            localStorage.setItem('signupData', JSON.stringify(signupPayload));
             router.replace("/profile/create");
           }
         } catch (error) {
@@ -71,7 +83,7 @@ export default function DashboardLayout({
 
     checkUserProfile();
 
-  }, [user, isUserLoading, userProfile, router, firestore, setUserProfile]);
+  }, [user, isUserLoading, router, firestore, userProfile, setUserProfile]);
 
   // While loading auth state or checking profile, show a skeleton screen.
   if (isUserLoading || isChecking) {
@@ -84,11 +96,8 @@ export default function DashboardLayout({
             </div>
         </header>
         <main className="flex-1 p-8">
-            <Skeleton className="h-8 w-48 mb-8" />
-            <div className="grid gap-6 mt-6 md:grid-cols-2 lg:grid-cols-3">
-              <Skeleton className="h-64 w-full" />
-              <Skeleton className="h-64 w-full" />
-              <Skeleton className="h-64 w-full" />
+            <div className="flex h-screen items-center justify-center">
+                <Skeleton className="h-48 w-full max-w-lg" />
             </div>
         </main>
       </div>
