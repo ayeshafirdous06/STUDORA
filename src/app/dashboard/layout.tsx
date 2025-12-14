@@ -24,43 +24,46 @@ export default function DashboardLayout({
   const router = useRouter();
   const firestore = useFirestore();
   const [userProfile, setUserProfile] = useLocalStorage<UserProfile | null>('userProfile', null);
-  const [isChecking, setIsChecking] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
+    // Wait until Firebase has finished its initial user loading.
     if (isUserLoading) {
-      return; // Wait until Firebase auth state is determined
+      return; 
     }
 
+    // If there's no user after loading, they are not logged in.
     if (!user) {
-      router.replace("/"); // User is not logged in, redirect to home
+      router.replace("/");
       return;
     }
 
-    // User is authenticated, now check for profile
+    // At this point, the user is authenticated. Now check for their profile.
     const checkForProfile = async () => {
-      if (userProfile) {
-        setIsChecking(false); // Profile is in local storage
+      // If profile is in local storage, we are good.
+      if (userProfile && userProfile.id === user.uid) {
+        setAuthChecked(true);
         return;
       }
 
-      // If no profile in local storage, try fetching from Firestore
+      // If not, fetch from Firestore.
       try {
         const userDocRef = doc(firestore, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
 
         if (userDocSnap.exists()) {
           const profileData = { id: user.uid, ...userDocSnap.data() } as UserProfile;
-          setUserProfile(profileData); // Save to local storage
+          setUserProfile(profileData); // Cache for next time.
         } else {
-          // No profile in Firestore, this is a new user
+          // This is a new user, redirect to create their profile.
           router.replace('/profile/create');
-          return; // Stop further execution
+          return;
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
-        // Maybe redirect to an error page or show a toast
+        // Optionally, redirect to an error page.
       } finally {
-        setIsChecking(false);
+        setAuthChecked(true);
       }
     };
 
@@ -68,7 +71,8 @@ export default function DashboardLayout({
 
   }, [user, isUserLoading, router, firestore, userProfile, setUserProfile]);
 
-  if (isUserLoading || isChecking) {
+  // Show a loading screen until all authentication and profile checks are complete.
+  if (!authChecked) {
     return (
       <div className="relative flex min-h-screen flex-col">
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

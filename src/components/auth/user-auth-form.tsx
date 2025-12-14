@@ -129,10 +129,8 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
         try {
             const result = await getRedirectResult(auth);
             if (result && result.user) {
-                toast({ title: "Signed In!", description: "Welcome back." });
+                toast({ title: "Signed In!", description: "Welcome." });
                 await handleSuccessfulLogin(result.user);
-            } else {
-                setIsGoogleLoading(false);
             }
         } catch (error) {
             const firebaseError = error as FirebaseError;
@@ -142,6 +140,7 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
                 description = "An account already exists with this email address. Please sign in with your original method.";
             }
             toast({ variant: "destructive", title: "Google Sign-In Failed", description });
+        } finally {
             setIsGoogleLoading(false);
         }
     };
@@ -162,7 +161,8 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     }
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider); // This will redirect the user
+    // This will redirect the user. The `useEffect` hook will handle the result.
+    await signInWithRedirect(auth, provider);
   }
 
   async function onSubmit(data: z.infer<typeof schema>) {
@@ -335,5 +335,3 @@ declare global {
     recaptchaVerifier?: RecaptchaVerifier;
   }
 }
-
-    
