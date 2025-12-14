@@ -28,10 +28,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { colleges } from '@/lib/data';
 import { Textarea } from '@/components/ui/textarea';
-import { useUser, useFirestore } from '@/firebase';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { doc, setDoc } from 'firebase/firestore';
 
 
 const interestsList = [
@@ -52,6 +50,7 @@ const profileSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters.').regex(/^[a-z0-9_.]+$/, 'Username can only contain lowercase letters, numbers, underscores, and dots.'),
   avatarUrl: z.string().optional(),
   collegeId: z.string({ required_error: "Please select your college." }).min(1, "Please select your college."),
+  accountType: z.enum(['seeker', 'provider']),
   skills: z.string().optional(), // For providers
   tagline: z.string().optional(),
   age: z.coerce.number().min(16, "You must be at least 16").optional(),
@@ -64,11 +63,8 @@ type ProfileForm = z.infer<typeof profileSchema>;
 export default function CreateProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [, setUserProfile] = useLocalStorage<any>('userProfile', null);
-  const [signupData, setSignupData] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -88,35 +84,13 @@ export default function CreateProfilePage() {
       tagline: '',
       pronouns: '',
       interests: [],
+      accountType: 'seeker',
     }
   });
 
   const { handleSubmit, setValue, watch, getValues, formState: { errors } } = form;
-  const isProvider = signupData?.accountType === 'provider';
-
-  useEffect(() => {
-    if (isUserLoading) return; // Wait until user auth state is determined
-
-    try {
-      const dataStr = localStorage.getItem('signupData');
-      if (!dataStr) {
-          if (!user) {
-            // Only redirect if we are certain there's no user and no signup data
-            router.replace('/signup');
-          }
-          return;
-      }
-      const data = JSON.parse(dataStr);
-      setSignupData(data);
-      if (data.name) setValue('name', data.name);
-      if (data.username) setValue('username', data.username);
-      if (data.collegeId) setValue('collegeId', data.collegeId);
-    } catch (e) {
-      console.error("Could not parse signup data from local storage", e);
-      if (!user) router.replace('/signup');
-    }
-  }, [isUserLoading, user, setValue, router]);
-
+  const accountType = watch('accountType');
+  const isProvider = accountType === 'provider';
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -161,28 +135,18 @@ export default function CreateProfilePage() {
 
 
   const onSubmit = async (data: ProfileForm) => {
-    if (!user || !user.uid) {
-        toast({ variant: 'destructive', title: 'Authentication Error', description: 'Could not verify user. Please try logging in again.' });
-        return;
-    }
-
-    if (!firestore) {
-        toast({ variant: 'destructive', title: 'Database Error', description: 'Could not connect to the database. Please try again.' });
-        return;
-    }
-
     setIsSubmitting(true);
 
     try {
         const skillsArray = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
         const fullProfile = { 
-          id: user.uid,
-          email: signupData.email || user.email || null, // Prioritize signup data, then user object
+          id: `user-${Date.now()}`,
+          email: `${data.username}@example.com`,
           name: data.name,
           username: data.username,
           collegeId: data.collegeId,
           avatarUrl: data.avatarUrl || `https://api.dicebear.com/8.x/initials/svg?seed=${data.name}`,
-          accountType: signupData.accountType,
+          accountType: data.accountType,
           age: data.age || null,
           pronouns: data.pronouns || null,
           interests: data.interests || [],
@@ -192,10 +156,8 @@ export default function CreateProfilePage() {
           earnings: 0,
         }; 
 
-        const userDocRef = doc(firestore, 'users', user.uid);
-        await setDoc(userDocRef, fullProfile);
+        // Simulate saving
         setUserProfile(fullProfile);
-        localStorage.removeItem('signupData');
 
         toast({ title: 'Profile Created!', description: 'Your profile has been successfully created.' });
         router.push('/dashboard');
@@ -208,26 +170,46 @@ export default function CreateProfilePage() {
     }
   };
 
-  if (isUserLoading || !user) {
-    return (
-        <div className="flex h-screen items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-    );
-  }
-
   return (
     <>
     <div className="container flex min-h-screen flex-col items-center justify-center py-8">
       <div className="w-full max-w-xl lg:p-8">
         <Card className="mx-auto bg-card p-4 sm:p-6">
           <CardHeader>
-            <CardTitle className="text-2xl font-headline">Create Your {isProvider ? "Provider" : ""} Profile</CardTitle>
-            <CardDescription>Just one more step. Let's get your profile ready.</CardDescription>
+            <CardTitle className="text-2xl font-headline">Create Your Profile</CardTitle>
+            <CardDescription>Let's get your profile ready so you can join the marketplace.</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                    control={form.control}
+                    name="accountType"
+                    render={({ field }) => (
+                        <FormItem className="space-y-3">
+                        <FormLabel>First, choose your account type:</FormLabel>
+                        <FormControl>
+                            <div className="grid grid-cols-2 gap-4">
+                                <Label
+                                    htmlFor="seeker"
+                                    className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground ${field.value === 'seeker' ? 'border-primary' : 'border-muted bg-popover'}`}
+                                >
+                                    <input type="radio" id="seeker" value="seeker" {...form.register('accountType')} className="peer sr-only" />
+                                    I need a service
+                                </Label>
+                                <Label
+                                    htmlFor="provider"
+                                    className={`flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground ${field.value === 'provider' ? 'border-primary' : 'border-muted bg-popover'}`}
+                                >
+                                    <input type="radio" id="provider" value="provider" {...form.register('accountType')} className="peer sr-only" />
+                                    I want to provide a service
+                                </Label>
+                            </div>
+                        </FormControl>
+                        </FormItem>
+                    )}
+                    />
+
                 <div className="flex flex-col items-center space-y-4">
                     <Avatar className="h-28 w-28 border-4 border-muted">
                       <AvatarImage src={previewImage ?? ''} />
@@ -388,7 +370,7 @@ export default function CreateProfilePage() {
                 )}
 
 
-                <Button type="submit" disabled={isSubmitting || isUserLoading} className="w-full">
+                <Button type="submit" disabled={isSubmitting} className="w-full">
                   {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Save and Continue'}
                 </Button>
               </form>
@@ -420,5 +402,3 @@ export default function CreateProfilePage() {
     </>
   );
 }
-
-    

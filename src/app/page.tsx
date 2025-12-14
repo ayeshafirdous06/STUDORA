@@ -35,11 +35,8 @@ export default function AccountTypeSelectionPage() {
             Join STUDORA, the exclusive marketplace for students to offer their skills and find help on campus.
           </p>
           <div className='flex justify-center gap-4 mb-6'>
-            <Link href="/login" passHref>
-                <Button size="lg">Log In</Button>
-            </Link>
-            <Link href="/signup" passHref>
-                <Button size="lg" variant="outline">Sign Up</Button>
+            <Link href="/profile/create" passHref>
+                <Button size="lg">Get Started</Button>
             </Link>
           </div>
           <p className="mt-8 text-center text-sm text-white/60">

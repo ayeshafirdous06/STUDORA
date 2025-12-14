@@ -17,9 +17,6 @@ import {
 import { useEffect, useState } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { useUser } from "@/firebase";
-import { signOut } from "firebase/auth";
-import { useAuth } from "@/firebase";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 
 type UserProfile = {
@@ -30,11 +27,9 @@ type UserProfile = {
 export function SiteHeader() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, isUserLoading } = useUser();
-  const auth = useAuth();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
-  const [userProfile] = useLocalStorage<UserProfile | null>('userProfile', null);
+  const [userProfile, setUserProfile] = useLocalStorage<UserProfile | null>('userProfile', null);
 
 
   useEffect(() => {
@@ -54,15 +49,12 @@ export function SiteHeader() {
   
   const handleLogout = async () => {
     try {
-        if(auth) {
-            await signOut(auth);
-        }
-        localStorage.removeItem('userProfile');
+        setUserProfile(null);
         toast({
             title: 'Signed Out',
             description: 'You have been successfully signed out.',
         });
-        router.push('/login');
+        router.push('/');
     } catch(e) {
         console.error(e);
         toast({
@@ -74,21 +66,21 @@ export function SiteHeader() {
   }
 
   const renderUserNav = () => {
-    if (!isClient || isUserLoading) {
+    if (!isClient) {
       return <Skeleton className="h-10 w-32 rounded-md" />;
     }
 
-    if (!user) {
+    if (!userProfile) {
       return (
         <div className="flex items-center gap-2">
-            <Button variant="ghost" asChild><Link href="/login">Log In</Link></Button>
-            <Button asChild><Link href="/signup">Sign Up</Link></Button>
+            <Button variant="ghost" asChild><Link href="/profile/create">Log In</Link></Button>
+            <Button asChild><Link href="/profile/create">Sign Up</Link></Button>
         </div>
       );
     }
 
-    const displayName = userProfile?.name || user.displayName || 'User';
-    const photoURL = userProfile?.avatarUrl || user.photoURL;
+    const displayName = userProfile.name || 'User';
+    const photoURL = userProfile.avatarUrl;
 
     return (
       <DropdownMenu>

@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import { useUser } from "@/firebase";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { serviceRequests, serviceProviders } from "@/lib/data";
@@ -35,10 +34,27 @@ type UserProfile = {
   interests?: string[];
 };
 
+// Mock user for UI rendering without real auth
+const mockUser: UserProfile = {
+    id: 'mock-user-1',
+    name: 'Jane Doe',
+    username: 'jane.doe',
+    email: 'jane@example.com',
+    collegeId: 'cbit',
+    avatarUrl: `https://api.dicebear.com/8.x/initials/svg?seed=Jane%20Doe`,
+    accountType: 'provider',
+    skills: ['Web Dev', 'React', 'Tutoring'],
+    tagline: 'Passionate developer and tutor.',
+    rating: 4.8,
+    earnings: 1200,
+    age: 21,
+    pronouns: 'she/her',
+    interests: ['web-dev', 'gaming']
+};
+
 
 export default function DashboardPage() {
-    const { user } = useUser();
-    const [currentUser] = useLocalStorage<UserProfile | null>('userProfile', null);
+    const [currentUser, setCurrentUser] = useLocalStorage<UserProfile | null>('userProfile', mockUser);
     
     const [searchQuery, setSearchQuery] = useState('');
     const [sentRequests, setSentRequests] = useState<string[]>([]);
