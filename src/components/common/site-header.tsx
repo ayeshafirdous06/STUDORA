@@ -56,7 +56,12 @@ export function SiteHeader() {
 
   const renderUserNav = () => {
     if (!userProfile) {
-        return <Skeleton className="h-10 w-32" />;
+        return (
+          <Button variant="ghost">
+            <Skeleton className="h-8 w-8 mr-2 rounded-full" />
+            <Skeleton className="h-4 w-20" />
+          </Button>
+        );
     }
 
     const displayName = userProfile?.name || 'User';
@@ -155,7 +160,7 @@ export function SiteHeader() {
             <span className="font-bold sm:inline-block">STUDORA</span>
           </Link>
           <nav className="flex items-center">
-            {renderUserNav()}
+            {isClient ? renderUserNav() : <Skeleton className="h-10 w-32" />}
           </nav>
         </div>
       </div>
