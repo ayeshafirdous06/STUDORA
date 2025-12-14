@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { colleges } from "@/lib/data";
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, FirebaseError, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, createUserWithEmailAndPassword, signInWithEmailAndPassword, FirebaseError, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
 
@@ -72,18 +72,41 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
   });
 
   React.useEffect(() => {
-    if (!auth || authMethod !== 'phone') return;
+    if (!auth) return;
+    
+    // Handle redirect result from Google sign-in
+    const checkRedirectResult = async () => {
+        setIsGoogleLoading(true);
+        try {
+            const result = await getRedirectResult(auth);
+            if (result && result.user) {
+                await handleSuccessfulLogin(result.user);
+            }
+        } catch (error) {
+            const firebaseError = error as FirebaseError;
+            console.error("Google sign-in redirect error", firebaseError);
+            let description = "Could not sign in with Google. Please try again.";
+            toast({ variant: "destructive", title: "Google Sign-In Failed", description });
+        } finally {
+            setIsGoogleLoading(false);
+        }
+    };
+    checkRedirectResult();
 
-    // Set up reCAPTCHA verifier
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-      'size': 'invisible',
-      'callback': () => {
-        // reCAPTCHA solved, allow signInWithPhoneNumber.
-      }
-    });
+    // Set up reCAPTCHA verifier for phone auth
+    if (authMethod === 'phone') {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'invisible',
+          'callback': () => {
+            // reCAPTCHA solved, allow signInWithPhoneNumber.
+          }
+        });
+    }
 
     return () => {
-      window.recaptchaVerifier?.clear();
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+      }
     }
   }, [auth, authMethod]);
 
@@ -122,20 +145,7 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     }
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      await handleSuccessfulLogin(result.user);
-    } catch (error) {
-      const firebaseError = error as FirebaseError;
-      console.error("Google sign-in error", firebaseError);
-      let description = "Could not sign in with Google. Please try again.";
-      if (firebaseError.code === 'auth/popup-closed-by-user') {
-        description = "Sign-in was cancelled. Please try again.";
-      }
-      toast({ variant: "destructive", title: "Google Sign-In Failed", description });
-    } finally {
-      setIsGoogleLoading(false);
-    }
+    await signInWithRedirect(auth, provider); // This will redirect the user
   }
 
 
@@ -302,3 +312,5 @@ declare global {
     recaptchaVerifier: RecaptchaVerifier;
   }
 }
+
+    
