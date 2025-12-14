@@ -105,10 +105,9 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     if (!confirmationResult) return;
     setIsLoading(true);
     try {
-      const userCredential = await confirmationResult.confirm(otp);
-      const user = userCredential.user;
-
-      // After phone verification, we always assume it's a new user or someone who needs to complete their profile
+      await confirmationResult.confirm(otp);
+      // On successful login, just go to the dashboard.
+      // The dashboard layout will handle fetching the profile or redirecting.
       router.push("/dashboard");
 
     } catch (error) {
@@ -135,8 +134,8 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     try {
         // Using signInWithRedirect to avoid popup blockers
         await signInWithRedirect(auth, provider);
-        // The page will redirect, and the result is handled by onAuthStateChanged/getRedirectResult
-        // in the main layout or root component.
+        // The page will redirect, and the result is handled by onAuthStateChanged
+        // in our main dashboard layout.
     } catch (error) {
         console.error("Google sign-in error", error);
         toast({
@@ -379,7 +378,3 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     </div>
   );
 }
-
-    
-    
-    
