@@ -14,10 +14,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useEffect, useState } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { useAuth } from "@/firebase";
 
 type UserProfile = {
   name: string;
@@ -27,7 +29,8 @@ type UserProfile = {
 export function SiteHeader() {
   const router = useRouter();
   const { toast } = useToast();
-  const [userProfile] = useLocalStorage<UserProfile | null>('userProfile', null);
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
 
@@ -45,27 +48,43 @@ export function SiteHeader() {
     return null;
   }
   
-  const handleLogout = () => {
-    localStorage.removeItem('userProfile');
-    toast({
-        title: 'Signed Out',
-        description: 'You have been successfully signed out.',
-    });
-    router.push('/');
+  const handleLogout = async () => {
+    try {
+        if(auth) {
+            await signOut(auth);
+        }
+        localStorage.removeItem('userProfile');
+        toast({
+            title: 'Signed Out',
+            description: 'You have been successfully signed out.',
+        });
+        router.push('/login');
+    } catch(e) {
+        console.error(e);
+        toast({
+            variant: "destructive",
+            title: 'Sign Out Failed',
+            description: 'There was an issue signing you out. Please try again.',
+        })
+    }
   }
 
   const renderUserNav = () => {
-    if (!userProfile) {
-        return (
-          <Button variant="ghost">
-            <Skeleton className="h-8 w-8 mr-2 rounded-full" />
-            <Skeleton className="h-4 w-20" />
-          </Button>
-        );
+    if (isUserLoading) {
+      return <Skeleton className="h-10 w-24" />;
     }
 
-    const displayName = userProfile?.name || 'User';
-    const photoURL = userProfile?.avatarUrl;
+    if (!user) {
+      return (
+        <div className="flex items-center gap-2">
+            <Button variant="ghost" asChild><Link href="/login">Log In</Link></Button>
+            <Button asChild><Link href="/signup">Sign Up</Link></Button>
+        </div>
+      );
+    }
+
+    const displayName = user.displayName || 'User';
+    const photoURL = user.photoURL;
 
     return (
       <DropdownMenu>
