@@ -6,7 +6,6 @@ import { useUser, useFirestore } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useLocalStorage } from "@/hooks/use-local-storage";
 import { doc, getDoc } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 
@@ -23,7 +22,6 @@ export default function DashboardLayout({
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const firestore = useFirestore();
-  const [userProfile, setUserProfile] = useLocalStorage<UserProfile | null>('userProfile', null);
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
@@ -40,18 +38,21 @@ export default function DashboardLayout({
 
     // At this point, the user is authenticated. Now check for their profile.
     const checkForProfile = async () => {
-      // If profile is in local storage, we are good.
-      if (userProfile && userProfile.id === user.uid) {
-        setAuthChecked(true);
-        return;
+      // Check if profile exists in local storage first for speed
+      const localProfile = localStorage.getItem('userProfile');
+      if (localProfile) {
+        const parsedProfile = JSON.parse(localProfile);
+        if (parsedProfile.id === user.uid) {
+           setAuthChecked(true);
+           return;
+        }
       }
 
-      // If not, fetch from Firestore.
+      // If not in local storage or mismatched, fetch from Firestore.
       try {
         if (!firestore) {
           console.error("Firestore not available");
-          // Handle this case, maybe show an error and a retry button
-          setAuthChecked(true); // Stop loading to show some UI
+          setAuthChecked(true); // Stop loading to show some UI, but this is an error state
           return;
         }
         const userDocRef = doc(firestore, 'users', user.uid);
@@ -59,11 +60,11 @@ export default function DashboardLayout({
 
         if (userDocSnap.exists()) {
           const profileData = { id: user.uid, ...userDocSnap.data() } as UserProfile;
-          setUserProfile(profileData); // Cache for next time.
+          localStorage.setItem('userProfile', JSON.stringify(profileData)); // Cache for next time.
         } else {
           // This is a new user, redirect to create their profile.
           router.replace('/profile/create');
-          return;
+          return; // Return here to prevent setting authChecked to true on this render
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
@@ -75,7 +76,7 @@ export default function DashboardLayout({
 
     checkForProfile();
 
-  }, [user, isUserLoading, router, firestore, userProfile, setUserProfile]);
+  }, [user, isUserLoading, router, firestore]);
 
   // Show a loading screen until all authentication and profile checks are complete.
   if (!authChecked || isUserLoading) {

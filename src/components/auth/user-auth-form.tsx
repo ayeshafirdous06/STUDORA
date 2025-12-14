@@ -22,7 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { colleges } from "@/lib/data";
 import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, createUserWithEmailAndPassword, signInWithEmailAndPassword, FirebaseError, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult, User } from 'firebase/auth';
 import { useAuth, useFirestore } from '@/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -110,14 +110,16 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     
     // Set up reCAPTCHA verifier for phone auth
     const setupRecaptcha = () => {
-        if (!window.recaptchaVerifier) {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-              'size': 'invisible',
-              'callback': () => {
-                // reCAPTCHA solved
-              }
-            });
+        // cleanup existing verifier if any
+        if (window.recaptchaVerifier) {
+            window.recaptchaVerifier.clear();
         }
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'invisible',
+          'callback': () => {
+            // reCAPTCHA solved
+          }
+        });
     }
     if (authMethod === 'phone') {
         setupRecaptcha();
@@ -125,14 +127,11 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     
     // Handle redirect result from Google sign-in
     const checkRedirectResult = async () => {
-        // Set loading state only if there's no user, to avoid flicker
-        if (!auth.currentUser) {
-            setIsGoogleLoading(true);
-        }
+        setIsGoogleLoading(true);
         try {
             const result = await getRedirectResult(auth);
             if (result && result.user) {
-                toast({ title: "Signed In!", description: "Welcome." });
+                toast({ title: "Signed In!", description: "Welcome back." });
                 await handleSuccessfulLogin(result.user);
             }
         } catch (error) {
@@ -150,11 +149,6 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     
     checkRedirectResult();
 
-    return () => {
-      if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
-      }
-    }
   }, [auth, handleSuccessfulLogin, toast, authMethod]);
 
   async function handleGoogleSignIn() {
@@ -164,7 +158,6 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     }
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
-    // This will redirect the user. The `useEffect` hook will handle the result.
     await signInWithRedirect(auth, provider);
   }
 
@@ -338,5 +331,3 @@ declare global {
     recaptchaVerifier?: RecaptchaVerifier;
   }
 }
-
-    
