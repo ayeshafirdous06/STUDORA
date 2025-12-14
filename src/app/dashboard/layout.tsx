@@ -48,6 +48,12 @@ export default function DashboardLayout({
 
       // If not, fetch from Firestore.
       try {
+        if (!firestore) {
+          console.error("Firestore not available");
+          // Handle this case, maybe show an error and a retry button
+          setAuthChecked(true); // Stop loading to show some UI
+          return;
+        }
         const userDocRef = doc(firestore, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
 
@@ -72,7 +78,7 @@ export default function DashboardLayout({
   }, [user, isUserLoading, router, firestore, userProfile, setUserProfile]);
 
   // Show a loading screen until all authentication and profile checks are complete.
-  if (!authChecked) {
+  if (!authChecked || isUserLoading) {
     return (
       <div className="relative flex min-h-screen flex-col">
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -100,3 +106,5 @@ export default function DashboardLayout({
     </div>
   );
 }
+
+    

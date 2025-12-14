@@ -125,7 +125,10 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     
     // Handle redirect result from Google sign-in
     const checkRedirectResult = async () => {
-        setIsGoogleLoading(true);
+        // Set loading state only if there's no user, to avoid flicker
+        if (!auth.currentUser) {
+            setIsGoogleLoading(true);
+        }
         try {
             const result = await getRedirectResult(auth);
             if (result && result.user) {
@@ -335,3 +338,5 @@ declare global {
     recaptchaVerifier?: RecaptchaVerifier;
   }
 }
+
+    
