@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Star, Briefcase, Clock, User, Search, CheckCircle2, UserPlus } from "lucide-react";
+import { PlusCircle, Star, Briefcase, Clock, User, Search, CheckCircle2, UserPlus, UserX } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -50,8 +50,14 @@ export default function DashboardPage() {
         provider.username.toLowerCase().includes(searchQuery.toLowerCase())
     );
     
-    const handleAddFriend = (providerId: string) => {
-        setSentRequests(prev => [...prev, providerId]);
+    const handleFriendRequest = (providerId: string) => {
+        setSentRequests(prev => {
+            if (prev.includes(providerId)) {
+                return prev.filter(id => id !== providerId); // Cancel request
+            } else {
+                return [...prev, providerId]; // Send request
+            }
+        });
     };
 
 
@@ -123,11 +129,19 @@ export default function DashboardPage() {
                                         <Button 
                                             variant="secondary" 
                                             className="w-full" 
-                                            onClick={() => handleAddFriend(provider.id)}
-                                            disabled={isRequestSent}
+                                            onClick={() => handleFriendRequest(provider.id)}
                                         >
-                                            <UserPlus className="mr-2 h-4 w-4" />
-                                            {isRequestSent ? 'Request Sent' : 'Add Friend'}
+                                            {isRequestSent ? (
+                                                <>
+                                                    <UserX className="mr-2 h-4 w-4" />
+                                                    Cancel Request
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <UserPlus className="mr-2 h-4 w-4" />
+                                                    Add Friend
+                                                </>
+                                            )}
                                         </Button>
                                     )}
                                 </CardFooter>
@@ -151,7 +165,7 @@ export default function DashboardPage() {
                         const isAccepted = request.status === 'In Progress';
 
                         return (
-                            <Card key={request.id} className={cn(isAccepted && "bg-muted/20 border-dashed")}>
+                            <Card key={request.id} className={cn(isAccepted && "bg-muted/50 border-dashed")}>
                                 <CardHeader>
                                     <CardTitle className="line-clamp-2">{request.title}</CardTitle>
                                     <CardDescription className="flex items-center gap-2 pt-2">
