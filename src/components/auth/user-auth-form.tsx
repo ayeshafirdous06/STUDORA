@@ -84,7 +84,6 @@ export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
   const {
     register,
     handleSubmit,
-    control,
     setValue,
     formState: { errors },
   } = useForm<FormData>({
@@ -94,21 +93,46 @@ export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
 
   // Handle Google Sign in Redirect
   React.useEffect(() => {
-    setIsLoading(true);
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          toast({ title: 'Signed in!', description: 'Welcome back.' });
-          router.replace('/profile/create');
-        }
-      })
-      .catch((error) => {
-        console.error("Google sign in error", error);
-        toast({ variant: 'destructive', title: 'Sign-in Failed', description: error.message });
-      }).finally(() => {
-        setIsLoading(false);
-      });
-  }, [auth, router, toast]);
+    // Only handle redirect result on login page to avoid loops
+    if (mode !== 'login') return;
+
+    const unsubscribe = auth.onAuthStateChanged(user => {
+        // If user is already logged in, no need to check for redirect result.
+        if (user) {
+            setIsLoading(false);
+            return;
+        };
+
+        setIsLoading(true);
+        getRedirectResult(auth)
+          .then((result) => {
+            if (result) {
+              const signupData = {
+                  email: result.user.email,
+                  name: result.user.displayName,
+                  // Google sign in doesn't have account type, so we need a default
+                  // or a way to ask the user. For now, let's default to 'seeker'
+                  // and they can create a profile.
+                  accountType: 'seeker', 
+              };
+              localStorage.setItem('signupData', JSON.stringify(signupData));
+              toast({ title: 'Signed in with Google!', description: "Let's create your profile." });
+              router.replace('/profile/create');
+            }
+          })
+          .catch((error) => {
+            if (error.code !== 'auth/no-redirect-operation') {
+                console.error("Google sign in error", error);
+                toast({ variant: 'destructive', title: 'Sign-in Failed', description: error.message });
+            }
+          }).finally(() => {
+            setIsLoading(false);
+          });
+    });
+    
+    return () => unsubscribe();
+
+  }, [auth, router, toast, mode]);
 
   async function onSubmit(data: FormData) {
     setIsLoading(true);
@@ -165,13 +189,13 @@ export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
                     onValueChange={(value) => setValue("accountType", value as 'seeker' | 'provider')}
                 >
                     <div>
-                        <RadioGroupItem value="seeker" id="seeker" className="peer sr-only" {...register("accountType")} />
+                        <RadioGroupItem value="seeker" id="seeker" className="peer sr-only" />
                         <Label htmlFor="seeker" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                             Service Seeker
                         </Label>
                     </div>
                     <div>
-                        <RadioGroupItem value="provider" id="provider" className="peer sr-only" {...register("accountType")} />
+                        <RadioGroupItem value="provider" id="provider" className="peer sr-only" />
                         <Label htmlFor="provider" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                            Service Provider
                         </Label>
@@ -193,7 +217,7 @@ export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
               {...register('email')}
             />
             {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
+              <p className="text-sm text-destructive">{String(errors.email.message)}</p>
             )}
           </div>
           <div className="grid gap-2">
@@ -238,5 +262,3 @@ export function UserAuthForm({ className, mode, ...props }: UserAuthFormProps) {
     </div>
   );
 }
-
-    

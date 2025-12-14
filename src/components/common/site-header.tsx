@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useAuth } from "@/firebase";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 type UserProfile = {
   name: string;
@@ -33,6 +34,8 @@ export function SiteHeader() {
   const auth = useAuth();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
+  const [userProfile] = useLocalStorage<UserProfile | null>('userProfile', null);
+
 
   useEffect(() => {
     setIsClient(true);
@@ -40,6 +43,7 @@ export function SiteHeader() {
 
   const navLinks = [
     { href: "/dashboard", label: "Marketplace" },
+    { href: "/messages", label: "Messages" },
     { href: "/register/college", label: "For Colleges" },
   ];
 
@@ -70,8 +74,8 @@ export function SiteHeader() {
   }
 
   const renderUserNav = () => {
-    if (isUserLoading) {
-      return <Skeleton className="h-10 w-24" />;
+    if (!isClient || isUserLoading) {
+      return <Skeleton className="h-10 w-32 rounded-md" />;
     }
 
     if (!user) {
@@ -83,8 +87,8 @@ export function SiteHeader() {
       );
     }
 
-    const displayName = user.displayName || 'User';
-    const photoURL = user.photoURL;
+    const displayName = userProfile?.name || user.displayName || 'User';
+    const photoURL = userProfile?.avatarUrl || user.photoURL;
 
     return (
       <DropdownMenu>
@@ -143,7 +147,7 @@ export function SiteHeader() {
         </div>
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-         {isClient && (
+         
            <div className="md:hidden">
             <Sheet>
               <SheetTrigger asChild>
@@ -173,13 +177,13 @@ export function SiteHeader() {
               </SheetContent>
             </Sheet>
           </div>
-         )}
+         
            <Link href="/dashboard" className="flex items-center space-x-2 md:hidden">
             <BookOpenCheck className="h-6 w-6 text-primary" />
             <span className="font-bold sm:inline-block">STUDORA</span>
           </Link>
           <nav className="flex items-center">
-            {isClient ? renderUserNav() : <Skeleton className="h-10 w-32" />}
+            {renderUserNav()}
           </nav>
         </div>
       </div>
