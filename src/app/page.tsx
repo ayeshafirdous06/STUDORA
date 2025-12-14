@@ -35,7 +35,7 @@ export default function AccountTypeSelectionPage() {
           </p>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <Link href="/profile/create" passHref>
+            <Link href="/dashboard" passHref>
               <Card className="transform border-border bg-card text-card-foreground transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/10">
                 <CardHeader>
                   <Briefcase className="h-8 w-8 text-primary mb-2" />
@@ -54,7 +54,7 @@ export default function AccountTypeSelectionPage() {
               </Card>
             </Link>
             
-            <Link href="/profile/create" passHref>
+            <Link href="/dashboard" passHref>
                <Card className="transform border-border bg-card text-card-foreground transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/10">
                  <CardHeader>
                   <UserPlus className="h-8 w-8 text-primary mb-2" />
@@ -73,16 +73,6 @@ export default function AccountTypeSelectionPage() {
               </Card>
             </Link>
           </div>
-
-          <p className="mt-12 text-center text-sm text-white/60">
-             Already have an account?{' '}
-             <Link
-               href="/login"
-               className="font-semibold text-white underline-offset-4 hover:underline"
-             >
-               Log In
-             </Link>
-           </p>
             <p className="mt-4 text-center text-sm text-white/60">
               Are you a college administrator?{' '}
               <Link

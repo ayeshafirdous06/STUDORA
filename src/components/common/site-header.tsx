@@ -1,14 +1,12 @@
 
-
 'use client';
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, BookOpenCheck, User as UserIcon, MessageSquare } from "lucide-react";
-import { useUser } from "@/firebase";
+import { Menu, BookOpenCheck, User as UserIcon, MessageSquare, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +17,7 @@ import {
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useEffect, useState } from "react";
 import { Skeleton } from "../ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 type UserProfile = {
   name: string;
@@ -26,7 +25,8 @@ type UserProfile = {
 }
 
 export function SiteHeader() {
-  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+  const { toast } = useToast();
   const [userProfile] = useLocalStorage<UserProfile | null>('userProfile', null);
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
@@ -44,60 +44,55 @@ export function SiteHeader() {
   if (pathname === '/') {
     return null;
   }
+  
+  const handleLogout = () => {
+    localStorage.removeItem('userProfile');
+    toast({
+        title: 'Signed Out',
+        description: 'You have been successfully signed out.',
+    });
+    router.push('/');
+  }
 
   const renderUserNav = () => {
-    if (isUserLoading) {
+    if (!userProfile) {
         return <Skeleton className="h-10 w-32" />;
     }
 
-    if (user || userProfile) {
-      const displayName = user?.displayName || userProfile?.name || 'User';
-      const photoURL = user?.photoURL || userProfile?.avatarUrl;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost">
-              <Avatar className="h-8 w-8 mr-2 border">
-                {photoURL && <AvatarImage src={photoURL} />}
-                <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <span>My Account</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link href="/profile">
-                <UserIcon className="mr-2 h-4 w-4" />
-                <span>My Profile</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/messages">
-                 <MessageSquare className="mr-2 h-4 w-4" />
-                 <span>Messages</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/profile">
-                <span>Log Out</span>
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    }
+    const displayName = userProfile?.name || 'User';
+    const photoURL = userProfile?.avatarUrl;
 
     return (
-      <>
-        <Button variant="ghost" asChild>
-          <Link href="/login">Log In</Link>
-        </Button>
-        <Button asChild>
-          <Link href="/signup">Sign Up</Link>
-        </Button>
-      </>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost">
+            <Avatar className="h-8 w-8 mr-2 border">
+              {photoURL && <AvatarImage src={photoURL} />}
+              <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <span>My Account</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Link href="/profile">
+              <UserIcon className="mr-2 h-4 w-4" />
+              <span>My Profile</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/messages">
+               <MessageSquare className="mr-2 h-4 w-4" />
+               <span>Messages</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleLogout}>
+             <LogOut className="mr-2 h-4 w-4" />
+             <span>Log Out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   };
 
