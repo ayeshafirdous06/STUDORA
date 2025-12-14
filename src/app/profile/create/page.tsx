@@ -100,7 +100,10 @@ export default function CreateProfilePage() {
     try {
       const dataStr = localStorage.getItem('signupData');
       if (!dataStr) {
-          if (!user) router.replace('/signup');
+          if (!user) {
+            // Only redirect if we are certain there's no user and no signup data
+            router.replace('/signup');
+          }
           return;
       }
       const data = JSON.parse(dataStr);
@@ -205,7 +208,7 @@ export default function CreateProfilePage() {
     }
   };
 
-  if (isUserLoading || !signupData) {
+  if (isUserLoading || !user) {
     return (
         <div className="flex h-screen items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -417,3 +420,5 @@ export default function CreateProfilePage() {
     </>
   );
 }
+
+    
