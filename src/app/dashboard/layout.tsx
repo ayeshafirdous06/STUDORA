@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/common/site-header";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { FirebaseClientProvider } from "@/firebase";
 
 type UserProfile = {
   id: string;
@@ -59,9 +60,11 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col">
-      <SiteHeader />
-      <main className="flex-1">{children}</main>
-    </div>
+    <FirebaseClientProvider>
+      <div className="relative flex min-h-screen flex-col">
+        <SiteHeader />
+        <main className="flex-1">{children}</main>
+      </div>
+    </FirebaseClientProvider>
   );
 }
