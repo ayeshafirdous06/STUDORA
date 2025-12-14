@@ -95,9 +95,7 @@ export default function CreateProfilePage() {
   const isProvider = signupData?.accountType === 'provider';
 
   useEffect(() => {
-    if (isUserLoading) {
-      return; // Wait until user auth state is determined
-    }
+    if (isUserLoading) return; // Wait until user auth state is determined
 
     try {
       const dataStr = localStorage.getItem('signupData');
@@ -111,10 +109,8 @@ export default function CreateProfilePage() {
       if (data.username) setValue('username', data.username);
       if (data.collegeId) setValue('collegeId', data.collegeId);
     } catch (e) {
-      console.error("Could not parse signup data from local storage");
-      if (!user) {
-        router.replace('/signup');
-      }
+      console.error("Could not parse signup data from local storage", e);
+      if (!user) router.replace('/signup');
     }
   }, [isUserLoading, user, setValue, router]);
 
@@ -149,11 +145,7 @@ export default function CreateProfilePage() {
       setIsSuggestionModalOpen(true);
     } catch (error) {
       console.error('AI username generation failed:', error);
-      toast({
-        variant: 'destructive',
-        title: 'AI Error',
-        description: 'Could not generate usernames at this time.',
-      });
+      toast({ variant: 'destructive', title: 'AI Error', description: 'Could not generate usernames at this time.' });
     } finally {
       setIsAiLoading(false);
     }
@@ -167,20 +159,12 @@ export default function CreateProfilePage() {
 
   const onSubmit = async (data: ProfileForm) => {
     if (!user || !user.uid) {
-        toast({
-            variant: 'destructive',
-            title: 'Authentication Error',
-            description: 'Could not verify user. Please try again or log in again.',
-        });
+        toast({ variant: 'destructive', title: 'Authentication Error', description: 'Could not verify user. Please try logging in again.' });
         return;
     }
 
     if (!firestore) {
-        toast({
-            variant: 'destructive',
-            title: 'Database Error',
-            description: 'Could not connect to the database. Please try again.',
-        });
+        toast({ variant: 'destructive', title: 'Database Error', description: 'Could not connect to the database. Please try again.' });
         return;
     }
 
@@ -190,45 +174,32 @@ export default function CreateProfilePage() {
         const skillsArray = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
         const fullProfile = { 
           id: user.uid,
-          email: signupData.email,
+          email: signupData.email || user.email || null, // Prioritize signup data, then user object
           name: data.name,
           username: data.username,
           collegeId: data.collegeId,
           avatarUrl: data.avatarUrl || `https://api.dicebear.com/8.x/initials/svg?seed=${data.name}`,
           accountType: signupData.accountType,
-          age: data.age,
-          pronouns: data.pronouns,
-          interests: data.interests,
-          // Provider specific fields
+          age: data.age || null,
+          pronouns: data.pronouns || null,
+          interests: data.interests || [],
           skills: skillsArray, 
-          tagline: data.tagline,
-          rating: isProvider ? 4.5 + Math.random() * 0.5 : 0, // Mock rating for new providers
+          tagline: data.tagline || null,
+          rating: isProvider ? 4.5 + Math.random() * 0.5 : 0,
           earnings: 0,
         }; 
 
-        // Save to Firestore
         const userDocRef = doc(firestore, 'users', user.uid);
         await setDoc(userDocRef, fullProfile);
-
-        // Save to local storage for immediate access
         setUserProfile(fullProfile);
-
-        // Clean up temporary data
         localStorage.removeItem('signupData');
 
-        toast({
-            title: 'Profile Created!',
-            description: 'Your profile has been successfully created.',
-        });
+        toast({ title: 'Profile Created!', description: 'Your profile has been successfully created.' });
         router.push('/dashboard');
 
     } catch (error) {
         console.error("Profile creation error:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Could not save your profile. Please try again.',
-        });
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not save your profile. Please try again.' });
     } finally {
         setIsSubmitting(false);
     }
@@ -446,5 +417,3 @@ export default function CreateProfilePage() {
     </>
   );
 }
-
-    
