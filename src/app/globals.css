@@ -29,7 +29,7 @@
     --destructive-foreground: 0 0% 100%;
 
     --border: 214 20% 83%; /* #D1D5DB */
-    --input: 214 20% 83%;
+    --input: 0 0% 100%; /* #FFFFFF */
     --ring: 44 49% 55%; /* #C8A951 */
 
     --radius: 0.5rem;
