@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -74,12 +73,12 @@ export default function ProfilePage() {
              const timeout = setTimeout(() => {
                 // if still no user after a bit, assume not logged in or no profile
                 if(!currentUser) {
-                    router.push('/login');
+                    setIsLoading(false); // Stop loading to show the 'not found' message
                 }
              }, 2000);
              return () => clearTimeout(timeout);
         }
-    }, [currentUser, router, profileSummary]);
+    }, [currentUser, profileSummary]);
 
 
     const handleLogout = async () => {
@@ -417,3 +416,5 @@ export default function ProfilePage() {
         </>
     )
 }
+
+    
