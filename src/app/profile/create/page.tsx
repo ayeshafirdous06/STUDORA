@@ -95,6 +95,13 @@ export default function CreateProfilePage() {
   const { handleSubmit, setValue, watch, getValues, formState: { errors } } = form;
   
   useEffect(() => {
+    // If a profile already exists in local storage, the user shouldn't be here.
+    // Redirect them to the dashboard.
+    if (userProfile && userProfile.id) {
+      router.replace('/dashboard');
+      return; // Stop further execution in this effect
+    }
+    
     try {
       const data = JSON.parse(localStorage.getItem('signupData') || '{}');
       setSignupData(data);
@@ -114,7 +121,7 @@ export default function CreateProfilePage() {
     } catch (e) {
       console.error("Could not parse signup data from local storage");
     }
-  }, [setValue]);
+  }, [setValue, userProfile, router]);
 
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -219,7 +226,7 @@ export default function CreateProfilePage() {
     }
   };
 
-  if (isUserLoading) {
+  if (isUserLoading || (userProfile && userProfile.id)) {
     return (
         <div className="flex h-screen items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -431,3 +438,5 @@ export default function CreateProfilePage() {
     </>
   );
 }
+
+    
