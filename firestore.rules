@@ -78,12 +78,14 @@ service cloud.firestore {
      * isNewUserDocValid
      * @description On user profile creation, validates that the document ID in the path
      * matches the user's auth UID and the 'id' field within the new document.
+     * Email is only validated if the auth token contains it.
      */
     function isNewUserDocValid(userId) {
       let data = request.resource.data;
+      let isEmailValid = request.auth.token.email == null ? true : data.email == request.auth.token.email;
       return isOwner(userId) 
           && data.id == userId
-          && data.email == request.auth.token.email;
+          && isEmailValid;
     }
 
     /**
