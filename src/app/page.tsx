@@ -35,7 +35,7 @@ export default function AccountTypeSelectionPage() {
           </p>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <Link href="/signup?accountType=provider" passHref>
+            <Link href="/profile/create" passHref>
               <Card className="transform border-border bg-card text-card-foreground transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/10">
                 <CardHeader>
                   <Briefcase className="h-8 w-8 text-primary mb-2" />
@@ -54,7 +54,7 @@ export default function AccountTypeSelectionPage() {
               </Card>
             </Link>
             
-            <Link href="/signup?accountType=seeker" passHref>
+            <Link href="/profile/create" passHref>
                <Card className="transform border-border bg-card text-card-foreground transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/10">
                  <CardHeader>
                   <UserPlus className="h-8 w-8 text-primary mb-2" />

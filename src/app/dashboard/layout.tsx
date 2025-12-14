@@ -25,41 +25,60 @@ export default function DashboardLayout({
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    // Fail-safe timeout: never block UI indefinitely
+    // This is a temporary bypass for development.
+    // We will revisit and fix the authentication flow later.
+    if (process.env.NODE_ENV === 'development') {
+      const mockUserProfile = {
+        id: 'dev-user',
+        name: 'Dev User',
+        username: 'dev.user',
+        email: 'dev@example.com',
+        collegeId: 'cbit',
+        avatarUrl: `https://api.dicebear.com/8.x/initials/svg?seed=DevUser`,
+        accountType: 'provider',
+        age: 21,
+        pronouns: 'they/them',
+        interests: ['web-dev', 'ai-ml'],
+        skills: ['React', 'Next.js', 'Firebase'],
+        tagline: 'A developer getting things done.',
+        rating: 4.8,
+        earnings: 1200,
+      };
+      localStorage.setItem('userProfile', JSON.stringify(mockUserProfile));
+      setAuthChecked(true);
+      return;
+    }
+
     const authTimeout = setTimeout(() => {
       if (!authChecked) {
-        console.warn("Auth timeout — redirecting to home for stability.");
-        // If auth state is still unresolved after timeout, redirect to prevent getting stuck
         if (!user) {
             router.replace("/");
         }
-        setAuthChecked(true); // Mark as checked to unblock UI
+        setAuthChecked(true); 
       }
-    }, 3000); // 3-second timeout
+    }, 5000); 
 
-    // This is the main auth checking logic
     const checkAuthAndProfile = async () => {
       if (isUserLoading) {
-        return; // Wait until Firebase has determined the auth state
+        return; 
       }
 
       if (!user) {
-        router.replace("/"); // No user found, redirect to home
+        router.replace("/"); 
         return;
       }
       
-      // User is authenticated, now check for their profile
       try {
         if (!firestore) {
           console.error("Firestore not available");
-          setAuthChecked(true); // Unblock UI even if firestore is down
+          setAuthChecked(true);
           return;
         }
         const userDocRef = doc(firestore, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
 
         if (!userDocSnap.exists()) {
-          router.replace('/profile/create'); // New user, needs to create a profile
+          router.replace('/profile/create');
         } else {
            const profileData = { id: user.uid, ...userDocSnap.data() } as UserProfile;
            localStorage.setItem('userProfile', JSON.stringify(profileData));
@@ -67,18 +86,17 @@ export default function DashboardLayout({
       } catch (error) {
         console.error("Error fetching user profile:", error);
       } finally {
-        setAuthChecked(true); // Mark auth as checked
+        setAuthChecked(true);
       }
     };
 
     checkAuthAndProfile();
 
-    // Cleanup the timeout if the component unmounts or effect re-runs
     return () => clearTimeout(authTimeout);
 
   }, [user, isUserLoading, router, firestore, authChecked]);
 
-  if (!authChecked || isUserLoading) {
+  if (!authChecked) {
     return (
       <div className="relative flex min-h-screen flex-col">
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -91,7 +109,7 @@ export default function DashboardLayout({
             <div className="flex h-[calc(100vh-10rem)] items-center justify-center">
                  <div className="flex items-center space-x-2">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <span className="text-muted-foreground">Signing in...</span>
+                    <span className="text-muted-foreground">Loading App...</span>
                 </div>
             </div>
         </main>
