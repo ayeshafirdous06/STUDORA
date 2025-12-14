@@ -171,11 +171,11 @@ export default function CreateProfilePage() {
 
 
   const onSubmit = async (data: ProfileForm) => {
-    if (!user || !user.email) {
+    if (!user || !user.uid) {
         toast({
             variant: 'destructive',
             title: 'Authentication Error',
-            description: 'You must be logged in to create a profile.',
+            description: 'Could not verify user. Please wait a moment and try again, or log out and log back in.',
         });
         return;
     }
