@@ -21,7 +21,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { colleges } from "@/lib/data";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, FirebaseError } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 
 
@@ -80,21 +80,16 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
             description: `Welcome, ${user.displayName}!`
         });
 
-        // For Google Sign-In, we save the essential info needed for the profile creation page.
-        // The dashboard layout will handle the redirection logic.
         const googleSignupData = {
             email: user.email,
             name: user.displayName,
             uid: user.uid,
             isGoogleSignIn: true,
             username: generateUsernameFromEmail(user.email),
-            // The account type is not determined here. We can default it or let user choose.
-            // Let's keep it simple and default to seeker, user can become a provider via their profile.
             accountType: 'seeker' 
         };
         localStorage.setItem('signupData', JSON.stringify(googleSignupData));
         
-        // Redirect to dashboard, which will then check for profile and redirect if necessary.
         router.push("/dashboard");
 
     } catch (error) {
@@ -113,43 +108,76 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
   async function onSubmit(data: z.infer<typeof schema>) {
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      if (mode === 'signup') {
-        // Store signup data temporarily to pass to the next step
+    if (mode === 'signup') {
+        const { email, password, collegeId, accountType } = data as SignupFormData;
         try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
             const signupPayload = {
-              ...data,
-              username: generateUsernameFromEmail(data.email),
+              email: user.email,
+              name: user.displayName || '',
+              uid: user.uid,
+              isGoogleSignIn: false,
+              username: generateUsernameFromEmail(user.email),
+              collegeId,
+              accountType,
             };
             localStorage.setItem('signupData', JSON.stringify(signupPayload));
-        } catch (e) {
-            console.error("Local storage is unavailable.");
+
+            toast({
+              title: "Account Created",
+              description: "One more step to set up your profile."
+            });
+            router.push("/profile/create");
+        } catch (error) {
+            const firebaseError = error as FirebaseError;
+            console.error("Signup error:", firebaseError);
+            let description = "An unexpected error occurred.";
+            if (firebaseError.code === 'auth/email-already-in-use') {
+                description = "This email is already in use. Please log in or use a different email.";
+            } else if (firebaseError.code === 'auth/weak-password') {
+                description = "The password is too weak. Please use a stronger password.";
+            }
+            toast({
+                variant: "destructive",
+                title: "Sign-Up Failed",
+                description,
+            });
+        } finally {
+            setIsLoading(false);
         }
-        toast({
-          title: "Account Created",
-          description: "One more step to set up your profile."
-        });
-        router.push("/profile/create");
-      } else { // Login mode
-        // For login, we'll just simulate a successful login and redirect.
-        // The dashboard layout will handle checking if the profile exists.
-         try {
+    } else { // Login mode
+        const { email, password } = data as LoginFormData;
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+
+            // A placeholder profile is set. The dashboard layout will wait for the
+            // real profile to be loaded from Firestore, but this prevents a flicker
+            // where the user is redirected back to login.
+            setUserProfile({ id: 'loading' });
+
             toast({
                 title: "Signed In",
                 description: "Welcome back!"
             });
             router.push("/dashboard");
-        } catch (e) {
+        } catch (error) {
+             const firebaseError = error as FirebaseError;
+             console.error("Login error:", firebaseError);
+             let description = "An unexpected error occurred.";
+             if (firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/invalid-credential') {
+                description = "Invalid email or password. Please try again.";
+             }
              toast({
                 variant: "destructive",
-                title: "Login Error",
-                description: "Could not access user profile."
+                title: "Login Failed",
+                description,
             });
+        } finally {
+            setIsLoading(false);
         }
-      }
-    }, 1500);
+    }
   }
 
 
@@ -252,3 +280,5 @@ export function UserAuthForm({ className, mode, accountType = 'seeker', ...props
     </div>
   );
 }
+
+    
