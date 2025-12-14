@@ -171,7 +171,7 @@ export default function CreateProfilePage() {
 
 
   const onSubmit = async (data: ProfileForm) => {
-    if (!user) {
+    if (!user || !user.email) {
         toast({
             variant: 'destructive',
             title: 'Authentication Error',
@@ -186,7 +186,7 @@ export default function CreateProfilePage() {
         const skillsArray = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
         const fullProfile = { 
           id: user.uid,
-          email: signupData.email,
+          email: user.email,
           name: data.name,
           username: data.username,
           collegeId: data.collegeId,
